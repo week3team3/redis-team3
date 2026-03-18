@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+  <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Burst Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Front-End Simulation</p>
+        <h1>Ticket Booking Panel and Traffic Simulator</h1>
+        <p class="hero-copy">The left side acts like a real booking screen, while the right side simulates high request volume per minute. Both panels share the same concert state.</p>
+      </div>
+      <div class="hero-status">
+        <span class="status-dot"></span>
+        <span id="serverStatusText">Back-end waiting</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="panel booking-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Manual Booking</p>
+            <h2>Show Overview and Live Seat Status</h2>
+          </div>
+          <button id="refreshButton" class="ghost-button">Refresh</button>
+        </div>
+
+        <article class="showcase-card">
+          <div class="showcase-copy">
+            <p class="show-tag">Live Showcase</p>
+            <h3 id="showTitle">Midnight Signal Tour</h3>
+            <p id="showDescription">A one-night show built around neon city visuals and live band energy.</p>
+            <div class="show-meta">
+              <span id="showDate">2026-04-08 19:30</span>
+              <span id="showVenue">Jungle Arena</span>
+            </div>
+          </div>
+          <div class="seat-summary">
+            <div class="metric-block">
+              <span class="metric-label">Total Seats</span>
+              <strong id="totalSeatsMetric">0</strong>
+            </div>
+            <div class="metric-block emphasis">
+              <span class="metric-label">Remaining</span>
+              <strong id="remainingSeatsMetric">0</strong>
+            </div>
+            <div class="metric-block">
+              <span class="metric-label">Booked</span>
+              <strong id="bookedSeatsMetric">0</strong>
+            </div>
+          </div>
+        </article>
+
+        <section class="seat-map-card">
+          <div class="subhead">
+            <div>
+              <h3>Seat Selection</h3>
+              <p>The remaining seat count updates live while simulator activity appears on the right.</p>
+            </div>
+            <div class="selection-pill">
+              Selected Seat
+              <strong id="selectedSeatLabel">None</strong>
+            </div>
+          </div>
+          <div id="seatMap" class="seat-map" aria-live="polite"></div>
+        </section>
+
+        <section class="manual-actions">
+          <div class="manual-status">
+            <p class="action-title">Manual Booking Actions</p>
+            <p id="bookingFeedback">Choose a seat, then book it or cancel it.</p>
+          </div>
+          <div class="action-buttons">
+            <button id="bookButton" class="primary-button">Book</button>
+            <button id="cancelButton" class="secondary-button">Cancel</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel simulation-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Auto Simulator</p>
+            <h2>Traffic Logs and Auto Request Controls</h2>
+          </div>
+          <div class="sim-pill" id="simStatusPill">Stopped</div>
+        </div>
+
+        <section class="log-card">
+          <div class="subhead">
+            <div>
+              <h3>Execution Log</h3>
+              <p>Both automated and manual actions are recorded here.</p>
+            </div>
+            <div class="stats-inline">
+              <span>Total <strong id="totalRequestsMetric">0</strong></span>
+              <span>Success <strong id="successRequestsMetric">0</strong></span>
+              <span>Failed <strong id="failedRequestsMetric">0</strong></span>
+            </div>
+          </div>
+          <div id="logStream" class="log-stream"></div>
+        </section>
+
+        <section class="sim-controls">
+          <div class="subhead">
+            <div>
+              <h3>Requests Per Minute</h3>
+              <p>Use the controls below to tune the simulation intensity.</p>
+            </div>
+          </div>
+
+          <div class="control-grid">
+            <label class="control-block">
+              <span>Requests / Minute</span>
+              <input id="rpmInput" type="number" min="1" max="1200" step="1" value="60">
+            </label>
+            <label class="control-block">
+              <span>Worker Count</span>
+              <input id="workerInput" type="number" min="1" max="20" step="1" value="3">
+            </label>
+            <label class="control-block">
+              <span>Seat Strategy</span>
+              <select id="strategySelect">
+                <option value="random">Random Seats</option>
+                <option value="front">Front Seats First</option>
+                <option value="back">Back Seats First</option>
+              </select>
+            </label>
+            <label class="control-block">
+              <span>Auto Cancel Ratio (%)</span>
+              <input id="cancelRatioInput" type="number" min="0" max="100" step="5" value="15">
+            </label>
+          </div>
+
+          <div class="sim-buttons">
+            <button id="startSimulationButton" class="primary-button">Start Simulation</button>
+            <button id="stopSimulationButton" class="secondary-button">Stop Simulation</button>
+            <button id="clearLogButton" class="ghost-button">Clear Log</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

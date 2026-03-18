@@ -1,1 +1,1 @@
-읽어주세요
+# redis project

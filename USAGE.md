@@ -296,23 +296,29 @@ python -m unittest tests.test_cli -v
 기본 set/get 부하:
 
 ```bash
-python scripts/load_test.py --host 127.0.0.1 --port 6379 --mode setget --clients 20 --iterations 50
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode setget --profile stress
 ```
 
 같은 키 카운터 증가 부하:
 
 ```bash
-python scripts/load_test.py --host 127.0.0.1 --port 6379 --mode incr --clients 20 --iterations 50
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode incr --profile stress
 ```
 
 레이트 리밋 부하:
 
 ```bash
-python scripts/load_test.py --host 127.0.0.1 --port 6379 --mode ratecheck --clients 20 --iterations 50
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode ratecheck --profile stress
 ```
 
 대기열 부하:
 
 ```bash
-python scripts/load_test.py --host 127.0.0.1 --port 6379 --mode queue --clients 20 --iterations 50
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode queue --profile overload
 ```
+
+프로필 기준 기본 부하량:
+
+- `quick`: 빠른 점검용
+- `stress`: 기본 스트레스 테스트용
+- `overload`: 강한 과부하 테스트용

@@ -34,7 +34,7 @@
 - `tests/test_cli.py`
 
 참고 부하 스크립트:
-- `scripts/load_test.py`
+- `experiments/traffic/load_test.py`
 
 원하는 산출물:
 - 기능별 테스트 현황 표

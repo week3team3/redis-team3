@@ -743,7 +743,7 @@ Any feature is complete only when all three are updated together:
 Traffic validation must exist in two layers:
 
 - deterministic automated concurrency tests
-- manual repeatable load testing through `scripts/load_test.py`
+- manual repeatable load testing through `experiments/traffic/load_test.py`
 
 ## 16. Acceptance Criteria for v1.4
 
@@ -786,4 +786,4 @@ The implementation is valid only if all of the following are true:
 - `tests/test_concurrency.py`: concurrent `SET/GET` and atomic `INCR`
 - `tests/test_persistence.py`: restart recovery with AOF
 - `tests/test_cli.py`: CLI command dispatch
-- `scripts/load_test.py`: manual traffic validation for `setget`, `incr`, `ratecheck`, `queue`
+- `experiments/traffic/load_test.py`: manual traffic validation for `setget`, `incr`, `ratecheck`, `queue`

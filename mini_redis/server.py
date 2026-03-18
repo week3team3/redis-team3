@@ -12,6 +12,7 @@ from mini_redis.store import MiniRedisStore
 class MiniRedisTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
+    request_queue_size = 1024
 
     def __init__(
         self,

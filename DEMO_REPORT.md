@@ -149,6 +149,39 @@ python -m mini_redis.cli --host 127.0.0.1 --port 6379
 > 👉 *확인 포인트:* AOF 파싱을 통해 서버가 완전히 죽었다 살아나도 저장소(`101`)가 완벽히 복원됨을 봅니다. CLI를 끕니다(`QUIT`).
 
 ---
+
+## 🎟️ 9단계: 티켓팅 웹 서비스 데모 시연
+
+지금까지 확인한 코어 Redis 기능을 응용한 실제 웹 서비스를 구동합니다.
+
+1. **[터미널 A]** 1~8단계에서 쓰던 `mini_redis.server`가 켜져 있어야 합니다.
+2. **[터미널 D]** (새 터미널 열기) 티켓팅 웹 서버를 구동합니다.
+```bash
+python -m ticketing_service.server --host 127.0.0.1 --port 8080 --redis-host 127.0.0.1 --redis-port 6379
+```
+3. 브라우저를 열고 다음 링크를 차례로 띄워봅니다.
+   - [운영자 대시보드 (현황 보기)](http://127.0.0.1:8080/ops)
+   - [예매 메인 화면 (User-A 진입)](http://127.0.0.1:8080/)
+   - [다른 탭에서 예매 메인 화면 (User-B 진입)](http://127.0.0.1:8080/)
+> 👉 *확인 포인트:* 정원이 차면 자동으로 대기실(`Page B`)로 빠지고, 자리가 나면 예매실(`Page A`)로 승격되는 전체 흐름을 확인합니다.
+
+---
+
+## 🚦 10단계: 과부하(Traffic Stress) 테스트 시연
+
+수많은 클라이언트가 동시에 붙었을 때 Redis가 죽지 않고 버티는지 검증합니다.
+
+**[터미널 B]** CLI를 끄고 일반 쉘 상태에서 실험 스크립트를 돌립니다.
+```bash
+# 기본 IO (SET/GET) 스트레스 테스트
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode setget --profile stress
+
+# 대기열 진입(QUEUE) 과부하 테스트
+python experiments/traffic/load_test.py --host 127.0.0.1 --port 6379 --mode queue --profile overload
+```
+> 👉 *확인 포인트:* 화면에 출력되는 `failures=0` 여부와 초당 처리량(`throughput`), 평균 지연(`Latency`) 지표를 짚어줍니다!
+
+---
 ---
 
 ## 🛠️ 번외: 대화형 CLI 사용자 매뉴얼 (기초 응답 테스트)

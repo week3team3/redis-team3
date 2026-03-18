@@ -8,7 +8,7 @@
 
    $ git clone https://github.com/week3team3/redis-team3.git
 
-4. clone받은 폴더로 이동 cd 현재폴더명
+4. clone받은 폴더로 이동 cd redis-team3
 5. 브랜치 생성
    $ git checkout -b 브랜치명
 6. 변경된 브랜치에서 작업

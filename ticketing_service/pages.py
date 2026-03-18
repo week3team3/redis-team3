@@ -7,146 +7,126 @@ from ticketing_service.service import TicketingConfig
 
 
 BASE_STYLE = """
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
 :root {
-  --bg: #f5efe4;
-  --panel: rgba(255, 251, 244, 0.95);
-  --line: #decfbf;
-  --ink: #191715;
-  --muted: #6b6258;
-  --brand: #b33a1f;
-  --brand-dark: #892813;
-  --success: #1e7a52;
-  --warning: #b46b17;
-  --shadow: 0 18px 40px rgba(63, 42, 19, 0.12);
+  --bg: #F4F6F9;
+  --surface: #FFFFFF;
+  --text-main: #111111;
+  --text-sub: #777777;
+  --border: #E8ECEF;
+  --red-main: #EB002C;
+  --red-dark: #C9001D;
+  --red-light: #FDE8EA;
+  --success: #00A651;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 * { box-sizing: border-box; }
 body {
-  margin: 0;
-  min-height: 100vh;
-  color: var(--ink);
-  font-family: "Noto Sans KR", "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(255, 216, 156, 0.48), transparent 25%),
-    radial-gradient(circle at top right, rgba(179, 58, 31, 0.18), transparent 22%),
-    linear-gradient(180deg, #f7f0e4 0%, #ede4d5 100%);
+  margin: 0; min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
-.shell { max-width: 1280px; margin: 0 auto; padding: 28px 20px 64px; }
-.topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; }
-.brand { display:inline-flex; align-items:center; gap:10px; font-weight:900; }
-.brand-mark {
-  width: 38px; height: 38px; border-radius: 14px; color: white;
-  display:inline-flex; align-items:center; justify-content:center;
-  background: linear-gradient(180deg, var(--brand), var(--brand-dark));
-  box-shadow: 0 10px 20px rgba(179, 58, 31, 0.24);
-}
-.nav { display:inline-flex; gap:10px; flex-wrap:wrap; }
-.nav a, .nav button {
-  border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,0.75);
-  padding: 10px 14px; cursor: pointer;
-}
-.grid-hero, .grid-two, .grid-three { display:grid; gap:18px; }
-.grid-hero { grid-template-columns: 320px 1fr 300px; }
-.grid-two { grid-template-columns: 1.15fr 0.85fr; }
-.grid-three { grid-template-columns: repeat(3, 1fr); }
-.panel, .poster {
-  border-radius: 28px; overflow:hidden; border:1px solid rgba(219,205,189,0.95);
-  background: var(--panel); box-shadow: var(--shadow);
-}
-.panel-body { padding: 24px; }
+a { text-decoration: none; color: inherit; }
+button, input { font-family: inherit; }
+
+/* 헤더 GNB */
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+.header-logo { font-size: 24px; font-weight: 800; color: var(--red-main); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;}
+.header-logo span { background: var(--text-main); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 14px;}
+.header-nav { display: flex; gap: 24px; font-size: 15px; font-weight: 600; color: var(--text-main); }
+.header-nav a:hover { color: var(--red-main); }
+
+/* 컨테이너 */
+.container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+.grid-hero { display: grid; grid-template-columns: 360px 1fr; gap: 24px; }
+.grid-half { display: grid; grid-template-columns: 6.5fr 3.5fr; gap: 24px; }
+.grid-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+/* 공통 박스 */
+.box { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.box-p { padding: 36px; }
+
+/* 포스터 영역 (메인 배너) */
 .poster {
-  min-height: 360px; padding: 28px; color:white;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.35)),
-    radial-gradient(circle at 50% 15%, rgba(255, 225, 182, 0.94), rgba(253, 180, 92, 0.3) 32%, transparent 54%),
-    linear-gradient(180deg, #4a3422 0%, #1f1814 72%, #180f09 100%);
+  background: #111; color: #fff; min-height: 500px; position: relative; padding: 40px; 
+  display: flex; flex-direction: column; justify-content: flex-end; border-radius: 12px;
+  background-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 100%), url('https://images.unsplash.com/photo-1540039155732-68473638cbb3?auto=format&fit=crop&w=800&q=80'); 
+  background-size: cover; background-position: center; box-shadow: 0 10px 30px rgba(235, 0, 44, 0.2);
 }
-.poster h1 {
-  margin: 38px 0 12px; max-width: 220px; font-size: 44px; line-height: 1.02;
-  font-family: Georgia, "Times New Roman", serif;
-}
-.poster p { margin: 0; color: rgba(255,255,255,0.82); line-height: 1.6; }
-.badge {
-  display:inline-flex; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:900;
-  letter-spacing:0.08em; background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
-}
-.flag {
-  display:inline-flex; border-radius:999px; padding:6px 12px; font-size:12px; font-weight:900;
-  letter-spacing:0.08em; background: rgba(179,58,31,0.1); color: var(--brand-dark); margin-bottom: 12px;
-}
-.title { margin:0; font-size:34px; line-height:1.18; }
-.lead, .copy { color: var(--muted); line-height: 1.7; }
-.cards { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
-.card {
-  border-radius:18px; padding:16px; border:1px solid var(--line); background: rgba(255,255,255,0.75);
-}
-.card small { display:block; margin-bottom:8px; color: var(--muted); }
-.card strong { font-size:20px; }
-.field { display:grid; gap:8px; margin-top: 16px; }
-.field label { font-size:13px; font-weight:800; color: var(--muted); }
-.field input {
-  width:100%; border-radius:16px; border:1px solid #ccbda8; padding:14px 16px; background:white;
-}
-.button-row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:16px; }
-.button, .secondary, .ghost {
-  border-radius:16px; padding:13px 16px; border:0; font-weight:900; cursor:pointer; text-align:center;
-}
-.button { color:white; background: linear-gradient(180deg, var(--brand), var(--brand-dark)); }
-.secondary { background:#efe5d7; color:#4f463c; border:1px solid #d9cbb8; }
-.ghost { background:transparent; color:var(--brand-dark); border:1px solid rgba(179,58,31,0.24); }
-.status-box {
-  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 20px;
-  border-radius:22px; background: linear-gradient(90deg, rgba(179,58,31,0.1), rgba(199,152,71,0.16));
-  border:1px solid rgba(179,58,31,0.14);
-}
-.status-box strong { display:block; margin-bottom:4px; font-size:20px; }
-.pill {
-  display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px;
-  font-size:12px; font-weight:900; letter-spacing:0.06em; text-transform:uppercase;
-}
-.pill.idle { background: rgba(91, 82, 71, 0.12); color: #5b5247; }
-.pill.waiting { background: rgba(180,107,23,0.12); color: var(--warning); }
-.pill.admitted { background: rgba(30,122,82,0.12); color: var(--success); }
-.pill.holding, .pill.confirmed { background: rgba(179,58,31,0.12); color: var(--brand-dark); }
-.pill.error, .pill.blocked { background: rgba(180,59,51,0.12); color: #b43b33; }
-.list, .seat-grid, .logs { display:grid; gap:10px; }
-.list-item {
-  display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px;
-  border-radius:16px; border:1px solid var(--line); background: rgba(255,255,255,0.72);
-}
-.list-item.me { border-color: rgba(179,58,31,0.36); background: rgba(179,58,31,0.08); }
-.seat-stage {
-  border-radius:22px; padding:18px; border:1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,240,226,0.88));
-}
-.stage-label { text-align:center; margin-bottom:16px; color: var(--muted); font-weight:800; letter-spacing:0.12em; }
-.screen {
-  width:82%; margin:0 auto 22px; text-align:center; padding:12px; border-radius:999px;
-  background: linear-gradient(180deg, #424242, #1f1f1f); color:white;
-}
-.seat-grid { grid-template-columns: repeat(2, 1fr); }
-.seat {
-  border-radius:18px; border:1px solid var(--line); background:white; padding:18px 14px;
-  cursor:pointer; text-align:left;
-}
-.seat strong { display:block; font-size:19px; margin-bottom:6px; }
-.seat.selected { border-color: var(--brand); background: rgba(179,58,31,0.08); }
-.seat.mine { border-color: var(--success); background: rgba(30,122,82,0.08); }
-.seat.taken { cursor:not-allowed; border-color:#c9b49e; background: rgba(157,137,116,0.14); }
-.empty {
-  padding:20px 12px; border-radius:16px; border:1px dashed var(--line);
-  background: rgba(255,255,255,0.55); color:var(--muted); text-align:center;
-}
-.note {
-  margin-top:12px; padding:14px 16px; border-radius:16px; background: rgba(255,255,255,0.78);
-  border:1px solid var(--line); color: var(--muted); line-height:1.6;
-}
-@media (max-width: 1100px) {
-  .grid-hero, .grid-two, .grid-three, .cards { grid-template-columns: 1fr; }
+.poster-tag { background: var(--red-main); color: #fff; display: inline-block; padding: 6px 12px; border-radius: 4px; font-weight: 700; font-size: 13px; margin-bottom: 12px; letter-spacing: 1px; align-self: flex-start;}
+.poster-title { font-size: 42px; font-weight: 800; margin: 0 0 16px 0; line-height: 1.25; letter-spacing: -1px;}
+.poster-desc { font-size: 15px; color: #ccc; margin: 0; line-height: 1.6; }
+
+/* 텍스트 UI */
+.title-lg { font-size: 26px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: -0.5px; }
+.desc { color: var(--text-sub); font-size: 15px; margin-bottom: 28px; line-height: 1.6; }
+
+/* 인포 카드 (요약 지표) */
+.info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+.info-card { background: #F8F9FA; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+.info-card span { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 6px; font-weight: 600;}
+.info-card strong { font-size: 26px; font-weight: 800; color: var(--red-main); }
+
+/* 폼 요소 */
+.input-group { margin-bottom: 24px; }
+.input-group label { display: block; font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+.input-group input { width: 100%; padding: 16px; border: 1px solid #CCC; border-radius: 8px; font-size: 16px; transition: border 0.2s; }
+.input-group input:focus { outline: none; border-color: var(--text-main); }
+
+/* 버튼 */
+.btn { width: 100%; padding: 16px; border-radius: 8px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; transition: 0.2s; }
+.btn-red { background: var(--red-main); color: #fff; }
+.btn-red:hover:not(:disabled) { background: var(--red-dark); }
+.btn-outline { background: #fff; color: var(--text-main); border: 1px solid #CCC; }
+.btn-outline:hover { background: #F8F9FA; border-color: #999; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;}
+
+/* 알림 박스 */
+.notice { padding: 18px; border-radius: 8px; background: #F8F9FA; color: var(--text-sub); font-size: 14px; text-align: center; margin-top: 24px; border: 1px solid var(--border); word-break: keep-all;}
+
+/* 대기열 특화 (Waiting Room) */
+.queue-box { text-align: center; padding: 70px 20px; }
+.queue-box h2 { font-size: 26px; margin-bottom: 12px; font-weight: 700;}
+.queue-box p { color: var(--text-sub); margin-bottom: 40px; font-size: 16px;}
+.spinner { margin: 0 auto 30px; width: 60px; height: 60px; border: 4px solid var(--red-light); border-top: 4px solid var(--red-main); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.queue-number-wrap { margin: 30px 0; }
+.queue-number { font-size: 90px; font-weight: 800; color: var(--red-main); line-height: 1; letter-spacing: -3px; }
+.queue-label { font-size: 18px; color: var(--text-main); font-weight: 600; margin-top: 8px; }
+
+/* 상태 구간 분리 (Pill/Badge) */
+.pill-wrap { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid var(--text-main); padding-bottom: 20px; }
+.badge { padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+.badge.waiting { background: #FFF3CD; color: #B46B17; }
+.badge.admitted { background: #D1E7DD; color: #0F5132; }
+.badge.holding { background: var(--red-light); color: var(--red-dark); }
+.badge.confirmed { background: var(--text-main); color: #fff; }
+
+/* 리스트 */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #F8F9FA; border-radius: 8px; font-size: 15px; border: 1px solid transparent; }
+.list-item.me { background: var(--red-light); border-color: rgba(235,0,44,0.2); color: var(--red-dark); font-weight: 600; }
+.list-item strong { color: var(--text-sub); font-weight: 600; font-size: 14px;}
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-sub); background: #F8F9FA; border-radius: 8px; font-size: 14px; }
+
+/* 좌석 예매도 (Seat Component) */
+.stage { background: #E8ECEF; text-align: center; padding: 16px; border-radius: 8px; font-weight: 700; color: #999; margin-bottom: 30px; letter-spacing: 5px; }
+.seat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+.seat { aspect-ratio: 1; border-radius: 8px; border: 2px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--text-main); transition: 0.2s; position: relative;}
+.seat:hover:not(:disabled) { border-color: var(--text-main); color: var(--text-main); }
+.seat.selected { background: var(--red-main); border-color: var(--red-main); color: #fff; }
+.seat.mine { background: var(--success); border-color: var(--success); color: #fff; }
+.seat.taken { background: #E8ECEF; border-color: #E8ECEF; color: #AAA; cursor: not-allowed; }
+.seat-sub { position: absolute; font-size: 10px; bottom: 6px; font-weight: 500; opacity: 0.8;}
+
+@media (max-width: 900px) {
+  .grid-hero, .grid-half, .grid-three { grid-template-columns: 1fr; }
 }
 """
-
 
 def _page(title: str, body: str, script: str = "") -> str:
     return f"""<!doctype html>
@@ -164,49 +144,44 @@ def _page(title: str, body: str, script: str = "") -> str:
 </html>
 """
 
-
 def render_entry_page(config: TicketingConfig) -> str:
     body = f"""
-<div class="shell">
-  <div class="topbar">
-    <div class="brand"><span class="brand-mark">R</span><span>PyMiniRedis Ticketing Demo</span></div>
-    <div class="nav"><a href="/">랜딩</a><a href="/ops">운영 보기</a></div>
+<div class="header">
+  <div class="header-logo"><span>PMR</span> REDIS_PROJECT</div>
+  <div class="header-nav"><a href="/">예매홈</a><a href="/ops">운영센터</a></div>
+</div>
+
+<div class="container">
+  <div class="grid-hero">
+    <div class="poster">
+      <div class="poster-tag">단독판매</div>
+      <h1 class="poster-title">GRAND HALL<br>LIVE 2026</h1>
+      <p class="poster-desc">초당 19,000건의 트래픽을 방어하는<br>PyMiniRedis 티켓팅 실전 데모입니다.</p>
+    </div>
+    
+    <div class="box box-p">
+      <h2 class="title-lg">단독 예매하기</h2>
+      <p class="desc">Redis 대기열(ZSET) 기반으로 보호되는 안전한 예매 페이지입니다. 원하는 ID를 입력해 예매 대기열에 진입하세요.</p>
+      
+      <div class="info-cards">
+        <div class="info-card"><span>수용 한도</span><strong>{config.max_active_users}</strong></div>
+        <div class="info-card"><span>총 좌석 수</span><strong>{len(config.seat_ids)}</strong></div>
+        <div class="info-card"><span>대기열 밀집도</span><strong id="queueSize">-</strong></div>
+      </div>
+      
+      <div class="input-group">
+        <label for="userId">REDIS_PROJECT 회원 아이디 (자유 입력)</label>
+        <input id="userId" value="user-a" placeholder="user-abc">
+      </div>
+      
+      <div class="btn-row" style="margin-bottom: 20px;">
+        <button class="btn btn-red" onclick="startEntry()">예매 진입하기</button>
+        <button class="btn btn-outline" onclick="refreshOverview()">서버 현황고침</button>
+      </div>
+      
+      <div class="notice" id="entryMessage">실시간 서버 상황 (대기열/입장자) 을 연결 중입니다...</div>
+    </div>
   </div>
-  <section class="grid-hero">
-    <article class="poster">
-      <span class="badge">EXCLUSIVE OPEN</span>
-      <h1>GRAND HALL LIVE</h1>
-      <p>Page A 수용 인원이 차면 Page B 대기실에서 기다리고, 자리가 나면 자동으로 예매실로 이동하는 티켓팅 데모입니다.</p>
-    </article>
-    <section class="panel"><div class="panel-body">
-      <span class="flag">ENTRY</span>
-      <h2 class="title">예매 시작 페이지</h2>
-      <p class="lead">사용자 ID를 입력하면 서버가 바로 입장 가능한지 판단합니다. 입장 가능하면 Page A, 아니면 Page B로 보냅니다.</p>
-      <div class="cards">
-        <div class="card"><small>Page A 수용 인원</small><strong>{config.max_active_users}</strong></div>
-        <div class="card"><small>등록 좌석 수</small><strong>{len(config.seat_ids)}</strong></div>
-        <div class="card"><small>현재 대기열</small><strong id="queueSize">-</strong></div>
-      </div>
-      <div class="field">
-        <label for="userId">회원 아이디</label>
-        <input id="userId" value="user-a" placeholder="예: user-a">
-      </div>
-      <div class="button-row">
-        <button class="button" onclick="startEntry()">예매 시작</button>
-        <button class="secondary" onclick="refreshOverview()">현황 새로고침</button>
-      </div>
-      <div class="note" id="entryMessage">Page A 현재 입장자와 대기열 길이는 아래 상태에서 바로 확인할 수 있습니다.</div>
-    </div></section>
-    <aside class="panel"><div class="panel-body">
-      <span class="flag">GUIDE</span>
-      <div class="list">
-        <div class="list-item"><strong>Page A</strong><span>실제 예매 진행</span></div>
-        <div class="list-item"><strong>Page B</strong><span>대기열 전용 페이지</span></div>
-        <div class="list-item"><strong>/ops</strong><span>입장 완료자 확인용</span></div>
-      </div>
-      <div class="note">운영용 테스트는 <strong>/ops</strong> 화면에서 현재 입장자, 대기열, 좌석 상태를 한 번에 볼 수 있습니다.</div>
-    </div></aside>
-  </section>
 </div>
 """
     script = """
@@ -218,14 +193,14 @@ async function api(path, options = {}) {
 async function refreshOverview() {
   const state = await api("/api/state");
   document.getElementById("queueSize").textContent = String(state.queue_size ?? 0);
-  const admitted = (state.admitted_users || []).join(", ") || "없음";
-  document.getElementById("entryMessage").textContent = `현재 Page A 입장자: ${admitted}. 대기열: ${state.queue_size ?? 0}명`;
+  const admitted = (state.admitted_users || []).join(", ") || "내부 접속자 없음";
+  document.getElementById("entryMessage").textContent = `현재 예매실 점유자: [ ${admitted} ] / 총 대기 유저: ${state.queue_size ?? 0}명`;
 }
 
 async function startEntry() {
   const userId = document.getElementById("userId").value.trim();
   if (!userId) {
-    document.getElementById("entryMessage").textContent = "회원 아이디를 먼저 입력하세요.";
+    document.getElementById("entryMessage").textContent = "아이디를 먼저 입력해주세요!";
     return;
   }
 
@@ -244,16 +219,16 @@ async function startEntry() {
     return;
   }
   if (result.status === "blocked") {
-    document.getElementById("entryMessage").textContent = `요청이 많아 ${result.reset_in}초 뒤 다시 시도할 수 있습니다.`;
+    document.getElementById("entryMessage").textContent = `[RATE LIMIT] 어뷰징 감지: ${result.reset_in}초 뒤 다시 시도해주세요.`;
     return;
   }
-  document.getElementById("entryMessage").textContent = "입장 요청 처리에 실패했습니다.";
+  document.getElementById("entryMessage").textContent = "서버 통신 실패.";
 }
 
 refreshOverview();
 setInterval(refreshOverview, 4000);
 """
-    return _page("PyMiniRedis Ticket Entry", body, script)
+    return _page("PyMiniRedis REDIS_PROJECT - Entry", body, script)
 
 
 def render_waiting_room_page(user_id: str) -> str:
@@ -268,15 +243,15 @@ async function api(path) {
   return response.json();
 }
 
-function renderUsers(targetId, users) {
+function renderUsers(targetId, users, isQueue) {
   const target = document.getElementById(targetId);
   if (!users.length) {
-    target.innerHTML = '<div class="empty">표시할 사용자가 없습니다.</div>';
+    target.innerHTML = '<div class="empty-state">해당 인원이 없습니다.</div>';
     return;
   }
   target.innerHTML = users.map((user, index) => `
     <div class="list-item ${user === USER_ID ? "me" : ""}">
-      <strong>${targetId === "queueList" ? index + 1 + "번" : "입장"}</strong>
+      <strong>${isQueue ? (index + 1) + "번대" : "예매 중"}</strong>
       <span>${user === USER_ID ? user + " (나)" : user}</span>
     </div>
   `).join("");
@@ -286,21 +261,21 @@ function render() {
   const state = currentState || {};
   const status = currentStatus?.status || "waiting";
   const position = currentStatus?.queue_position || "-";
-  document.getElementById("waitingPill").className = `pill ${status}`;
+  
+  document.getElementById("waitingPill").className = `badge ${status}`;
   document.getElementById("waitingPill").textContent = status.toUpperCase();
   document.getElementById("queuePosition").textContent = String(position);
   document.getElementById("aheadCount").textContent = position === "-" ? "-" : String(Math.max(Number(position) - 1, 0));
 
   if (status === "waiting") {
-    document.getElementById("waitingTitle").textContent = `${USER_ID} 님은 현재 Page B 대기실에 있습니다`;
-    document.getElementById("waitingText").textContent = `${position}번 순서입니다. Page A 자리가 나면 자동 이동합니다.`;
+    document.getElementById("waitingTitle").textContent = "고객님 앞에 접속한 대기자가 있습니다.";
+    document.getElementById("waitingText").textContent = "잠시만 대기해 주시면 예매 페이지로 자동 접속됩니다.";
   } else {
-    document.getElementById("waitingTitle").textContent = "입장 가능 상태입니다";
-    document.getElementById("waitingText").textContent = "예매 페이지로 이동합니다.";
+    document.getElementById("waitingTitle").textContent = "예매실 입장 준비 완료!";
+    document.getElementById("waitingText").textContent = "곧 좌석 페이지로 자동 이동합니다...";
   }
 
-  renderUsers("admittedUsers", state.admitted_users || []);
-  renderUsers("queueList", state.waiting_users || []);
+  renderUsers("admittedUsers", state.admitted_users || [], false);
 }
 
 async function pollNow() {
@@ -316,39 +291,55 @@ async function pollNow() {
 pollNow();
 setInterval(pollNow, 2000);
 """.replace("__USER_ID__", json.dumps(user_id))
+    
     body = f"""
-<div class="shell">
-  <div class="topbar">
-    <div class="brand"><span class="brand-mark">B</span><span>Page B Waiting Room</span></div>
-    <div class="nav"><a href="/">처음으로</a><a href="/ops">운영 보기</a></div>
-  </div>
-  <section class="grid-two">
-    <section class="panel"><div class="panel-body">
-      <span class="flag">PAGE B</span>
-      <div class="status-box">
-        <div>
-          <strong id="waitingTitle">대기열 정보를 확인하는 중입니다</strong>
-          <div class="lead" id="waitingText">입장 가능 상태가 되면 Page A로 자동 이동합니다.</div>
+<div class="header">
+  <div class="header-logo"><span>PMR</span> REDIS_PROJECT</div>
+</div>
+
+<div class="container">
+  <div class="grid-half">
+    <!-- 왼쪽 큐 뷰 -->
+    <div class="box queue-box">
+      <div class="pill-wrap">
+        <div style="text-align:left;">
+          <h2 id="waitingTitle" style="margin:0; font-size:22px;">대기열 통신 연결 중...</h2>
+          <div id="waitingText" style="color:var(--text-sub); font-size:14px; margin-top:4px;">잠시만 기다려주세요.</div>
         </div>
-        <span id="waitingPill" class="pill waiting">WAITING</span>
+        <span id="waitingPill" class="badge waiting">WAITING</span>
       </div>
-      <div class="cards" style="margin-top:18px;">
-        <div class="card"><small>내 아이디</small><strong>{safe_user or "-"}</strong></div>
-        <div class="card"><small>현재 순번</small><strong id="queuePosition">-</strong></div>
-        <div class="card"><small>앞에 남은 인원</small><strong id="aheadCount">-</strong></div>
+      
+      <div class="spinner"></div>
+      <h3>현재 나의 대기 순서</h3>
+      
+      <div class="queue-number-wrap">
+        <div class="queue-number" id="queuePosition">-</div>
+        <div class="queue-label">번째</div>
       </div>
-      <div class="note">현재는 Page B 대기실입니다. 운영자 또는 다른 사용자의 완료로 자리가 나면 자동으로 Page A 예매실로 이동합니다.</div>
-    </div></section>
-    <aside class="panel"><div class="panel-body">
-      <h3 class="title" style="font-size:24px;">현재 Page A 입장자</h3>
-      <div id="admittedUsers" class="list" style="margin-top:16px;"></div>
-      <h3 class="title" style="font-size:24px; margin-top:18px;">전체 대기열</h3>
-      <div id="queueList" class="list" style="margin-top:16px;"></div>
-    </div></aside>
-  </section>
+      
+      <p style="background:#F8F9FA; padding:16px; border-radius:8px; border:1px solid var(--border);">
+        나보다 늦게 접속한 사람들 앞에는 <b style="color:var(--text-main);" id="aheadCount">-</b>명의 대기자가 있습니다.<br>
+        새로고침 시 순번이 뒤로 밀릴 수 있습니다.
+      </p>
+    </div>
+    
+    <!-- 오른쪽 현황 -->
+    <div class="box box-p">
+      <h3 class="title-lg" style="font-size:20px;">내 접속 브라우저 ID</h3>
+      <div class="notice" style="margin: 10px 0 30px; font-weight: 700; color:var(--red-dark); font-size: 16px;">{safe_user or "-"}</div>
+      
+      <h3 class="title-lg" style="font-size:20px;">현재 실제 예매 중인 사람</h3>
+      <p class="desc" style="margin-bottom: 12px;">이분들의 결제가 끝나거나 도망가면 순번이 줄어듭니다.</p>
+      <div id="admittedUsers" class="list"></div>
+      
+      <div class="btn-row" style="margin-top: 30px;">
+        <button class="btn btn-outline" onclick="window.location.href='/'">포기하고 나가기</button>
+      </div>
+    </div>
+  </div>
 </div>
 """
-    return _page("PyMiniRedis Waiting Room", body, script)
+    return _page("PyMiniRedis - Waiting Room", body, script)
 
 
 def render_ticketing_page(user_id: str, seat_ids: tuple[str, ...]) -> str:
@@ -359,18 +350,10 @@ const SEAT_IDS = __SEAT_IDS__;
 let selectedSeat = SEAT_IDS[0] || "A1";
 let currentStatus = null;
 let currentState = null;
-let logs = [];
 
 async function api(path, options = {}) {
   const response = await fetch(path, options);
   return response.json();
-}
-
-function pushLog(message) {
-  const stamp = new Date().toLocaleTimeString("ko-KR", { hour12: false });
-  logs.unshift({ stamp, message });
-  logs = logs.slice(0, 6);
-  renderLogs();
 }
 
 function currentReservation() {
@@ -379,21 +362,21 @@ function currentReservation() {
 
 function renderBanner() {
   const status = currentStatus?.status || "admitted";
-  document.getElementById("ticketPill").className = `pill ${status}`;
+  document.getElementById("ticketPill").className = `badge ${status}`;
   document.getElementById("ticketPill").textContent = status.toUpperCase();
 
   if (status === "admitted") {
-    document.getElementById("ticketTitle").textContent = `${USER_ID} 님은 현재 Page A 예매실에 있습니다`;
-    document.getElementById("ticketText").textContent = "좌석을 선택하고 홀드한 뒤 결제 확정 또는 취소를 진행할 수 있습니다.";
+    document.getElementById("ticketTitle").textContent = `좌석 선택하기`;
+    document.getElementById("ticketText").textContent = "원하시는 구역의 좌석을 빨리 선점(홀드) 하세요!";
   } else if (status === "holding") {
-    document.getElementById("ticketTitle").textContent = `${USER_ID} 님의 좌석이 임시 홀드되었습니다`;
-    document.getElementById("ticketText").textContent = "결제 확정을 누르면 예매 완료 처리됩니다.";
+    document.getElementById("ticketTitle").textContent = `좌석 홀드 완료! 결제를 진행하세요.`;
+    document.getElementById("ticketText").textContent = "지금 방어 중입니다. 지정시간 내에 결제 확정을 완료해주세요.";
   } else if (status === "confirmed") {
-    document.getElementById("ticketTitle").textContent = `${USER_ID} 님의 예매가 완료되었습니다`;
-    document.getElementById("ticketText").textContent = "예매 완료 상태를 유지합니다.";
+    document.getElementById("ticketTitle").textContent = `예매 완료`;
+    document.getElementById("ticketText").textContent = "예매가 안전하게 확정되었습니다.";
   } else {
-    document.getElementById("ticketTitle").textContent = "상태를 확인하는 중입니다";
-    document.getElementById("ticketText").textContent = "필요 시 대기실로 다시 이동할 수 있습니다.";
+    document.getElementById("ticketTitle").textContent = "동기화 중...";
+    document.getElementById("ticketText").textContent = "데이터를 불러옵니다.";
   }
 }
 
@@ -405,10 +388,13 @@ function renderSeats() {
     const holder = seatMap[seatId];
     const mine = holder === USER_ID;
     const taken = Boolean(holder && holder !== USER_ID);
+    
+    let sub = mine ? "보유좌석" : (taken ? "결제중" : "선택");
+    
     const button = document.createElement("button");
     button.className = `seat ${selectedSeat === seatId ? "selected" : ""} ${mine ? "mine" : ""} ${taken ? "taken" : ""}`.trim();
     button.disabled = taken;
-    button.innerHTML = `<strong>${seatId}</strong><span>${mine ? "내가 선점한 좌석" : taken ? "다른 사용자가 사용 중" : "예매 가능"}</span>`;
+    button.innerHTML = `${seatId} <div class="seat-sub">${sub}</div>`;
     button.onclick = () => {
       if (taken) return;
       selectedSeat = seatId;
@@ -422,29 +408,15 @@ function renderSeats() {
 function renderSummary() {
   const state = currentState || {};
   const reservation = currentReservation();
-  document.getElementById("summary").innerHTML = `
-    <div class="list-item"><strong>현재 사용자</strong><span>${USER_ID}</span></div>
-    <div class="list-item"><strong>예매 상태</strong><span>${currentStatus?.status || "-"}</span></div>
-    <div class="list-item"><strong>선택 좌석</strong><span>${selectedSeat}</span></div>
-    <div class="list-item"><strong>홀드/확정 좌석</strong><span>${reservation?.seat_id || "-"}</span></div>
-    <div class="list-item"><strong>남은 좌석</strong><span>${state.stock ?? "-"}</span></div>
-    <div class="list-item"><strong>현재 Page A 입장 수</strong><span>${state.active_count ?? "-"} / ${state.max_active_users ?? "-"}</span></div>
-  `;
+  
+  document.getElementById("sum-id").textContent = USER_ID;
+  document.getElementById("sum-selected").textContent = selectedSeat;
+  document.getElementById("sum-hold").textContent = reservation?.seat_id || "-";
+  document.getElementById("sum-stock").textContent = state.stock ?? "-";
 
-  const admitted = state.admitted_users || [];
-  document.getElementById("admittedUsers").innerHTML = admitted.length
-    ? admitted.map((user) => `<div class="list-item ${user === USER_ID ? "me" : ""}"><strong>${user === USER_ID ? "나" : "입장"}</strong><span>${user}</span></div>`).join("")
-    : '<div class="empty">현재 입장한 사용자가 없습니다.</div>';
   document.getElementById("reserveButton").disabled = currentStatus?.status !== "admitted";
   document.getElementById("confirmButton").disabled = currentStatus?.status !== "holding";
   document.getElementById("cancelButton").disabled = !["holding", "confirmed"].includes(currentStatus?.status || "");
-}
-
-function renderLogs() {
-  const target = document.getElementById("logs");
-  target.innerHTML = logs.length
-    ? logs.map((entry) => `<div class="list-item"><strong>${entry.stamp}</strong><span>${entry.message}</span></div>`).join("")
-    : '<div class="empty">아직 동작 기록이 없습니다.</div>';
 }
 
 async function syncState() {
@@ -459,7 +431,6 @@ async function syncState() {
   renderBanner();
   renderSeats();
   renderSummary();
-  renderLogs();
 }
 
 async function reserveSeat() {
@@ -468,7 +439,8 @@ async function reserveSeat() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: USER_ID, seat_id: selectedSeat }),
   });
-  pushLog(result.status === "holding" ? `${selectedSeat} 좌석 홀드 성공` : `홀드 실패: ${result.reason || "unknown"}`);
+  if (result.status === "holding") { alert(`${selectedSeat} 좌석 선점에 성공했습니다! 결제를 진행하세요.`); }
+  else { alert(`홀드 실패 (누군가 먼저 낚아챘습니다)`); }
   await syncState();
 }
 
@@ -478,94 +450,104 @@ async function confirmReservation() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: USER_ID }),
   });
-  pushLog(result.status === "confirmed" ? "결제 확정 완료" : `확정 실패: ${result.reason || "unknown"}`);
+  if (result.status === "confirmed") { alert(`결제가 확정되었습니다. 예매 완료!`); }
   await syncState();
 }
 
 async function cancelReservation() {
-  const result = await api("/api/cancel", {
+  if (!confirm("정말 취소하시겠습니까? 대기열로 돌아가거나 서버 밖으로 나갑니다.")) return;
+  await api("/api/cancel", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: USER_ID }),
   });
-  pushLog(result.status === "cancelled" ? "예약 취소 완료" : `취소 실패: ${result.reason || "unknown"}`);
-  await syncState();
+  window.location.replace('/');
 }
 
-pushLog("Page A 예매실에 진입했습니다.");
 syncState();
-setInterval(syncState, 2500);
+setInterval(syncState, 2000);
 """.replace("__USER_ID__", json.dumps(user_id)).replace("__SEAT_IDS__", json.dumps(list(seat_ids), ensure_ascii=False))
+    
     body = f"""
-<div class="shell">
-  <div class="topbar">
-    <div class="brand"><span class="brand-mark">A</span><span>Page A Ticketing Room</span></div>
-    <div class="nav"><a href="/">처음으로</a><a href="/waiting-room?user_id={safe_user}">대기실</a><a href="/ops">운영 보기</a></div>
+<div class="header">
+  <div class="header-logo"><span>PMR</span> Ticketlink</div>
+  <div class="header-nav"><a href="/ops" target="_blank">운영자 센터</a></div>
+</div>
+
+<div class="container">
+  <div class="pill-wrap" style="border-bottom: 3px solid #111;">
+    <div style="text-align:left;">
+      <h2 id="ticketTitle" style="margin:0 0 8px 0; font-size:28px;">GRAND HALL LIVE - 좌석 선택</h2>
+      <div id="ticketText" style="color:var(--text-sub); font-size:15px;">서버와 통신 중입니다.</div>
+    </div>
+    <span id="ticketPill" class="badge admitted">ADMITTED</span>
   </div>
-  <section class="grid-two">
-    <section class="panel"><div class="panel-body">
-      <span class="flag">PAGE A</span>
-      <div class="status-box">
-        <div>
-          <strong id="ticketTitle">예매실 상태를 확인하는 중입니다</strong>
-          <div class="lead" id="ticketText">좌석 상태를 불러오고 있습니다.</div>
-        </div>
-        <span id="ticketPill" class="pill admitted">ADMITTED</span>
+
+  <div class="grid-half">
+    <div class="box box-p" style="background: #FAFAFA;">
+      <div class="stage">STAGE (무대)</div>
+      <div id="seatGrid" class="seat-grid"></div>
+    </div>
+    
+    <div class="box box-p">
+      <h3 class="title-lg" style="font-size:22px;">예매 정보 요약</h3>
+      <div class="list" style="margin: 20px 0;">
+        <div class="list-item"><strong>예매자 ID</strong><span id="sum-id">-</span></div>
+        <div class="list-item" style="border:1px solid #111;"><strong>내가 클릭한 좌석</strong><span id="sum-selected" style="color:var(--red-main); font-weight:700;">-</span></div>
+        <div class="list-item" style="background:#E8ECEF;"><strong>현재 내가 홀드한 좌석</strong><span id="sum-hold">-</span></div>
+        <div class="list-item"><strong>남은 총 잔여석</strong><span id="sum-stock">-</span></div>
       </div>
-      <div class="seat-stage" style="margin-top:18px;">
-        <div class="stage-label">SEAT MAP</div>
-        <div class="screen">STAGE</div>
-        <div id="seatGrid" class="seat-grid"></div>
-        <div class="button-row">
-          <button id="reserveButton" class="button" onclick="reserveSeat()">선택 좌석 홀드</button>
-          <button id="confirmButton" class="button" onclick="confirmReservation()">결제 확정</button>
-        </div>
-        <div class="button-row">
-          <button id="cancelButton" class="secondary" onclick="cancelReservation()">예약 취소</button>
-          <button class="secondary" onclick="syncState()">상태 새로고침</button>
-        </div>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:30px;">
+        <button id="reserveButton" class="btn btn-outline" style="border:2px solid var(--text-main);" onclick="reserveSeat()">선택한 좌석 홀드 (선점하기)</button>
+        <button id="confirmButton" class="btn btn-red" onclick="confirmReservation()">홀드 완료 -> 즉시 결제하기</button>
+        <button id="cancelButton" class="btn btn-outline" style="margin-top:20px; border-color:#E8ECEF; color:#AAA;" onclick="cancelReservation()">예매 취소 / 나가기</button>
       </div>
-    </div></section>
-    <aside class="panel"><div class="panel-body">
-      <h3 class="title" style="font-size:24px;">내 예매 요약</h3>
-      <div id="summary" class="list" style="margin-top:16px;"></div>
-      <h3 class="title" style="font-size:24px; margin-top:18px;">현재 Page A 입장자</h3>
-      <div id="admittedUsers" class="list" style="margin-top:16px;"></div>
-      <h3 class="title" style="font-size:24px; margin-top:18px;">최근 동작</h3>
-      <div id="logs" class="logs" style="margin-top:16px;"></div>
-    </div></aside>
-  </section>
+    </div>
+  </div>
 </div>
 """
-    return _page("PyMiniRedis Ticketing Room", body, script)
+    return _page("PyMiniRedis Ticketlink - Booking", body, script)
 
 
 def render_ops_page(config: TicketingConfig) -> str:
     body = f"""
-<div class="shell">
-  <div class="topbar">
-    <div class="brand"><span class="brand-mark">O</span><span>Operator View</span></div>
-    <div class="nav"><a href="/">랜딩</a><a href="/waiting-room?user_id=user-b">대기실 예시</a></div>
+<div class="header" style="background: #111;">
+  <div class="header-logo" style="color:#fff;"><span style="background:var(--red-main);">OPS</span> Ticketlink Admin</div>
+  <div class="header-nav"><a href="/" style="color:#999;">유저 메인화면</a></div>
+</div>
+
+<div class="container">
+  <div class="box box-p">
+    <h2 class="title-lg">운영자 관제 대시보드 (Admin)</h2>
+    <p class="desc">실시간으로 In-memory Redis 위에서 움직이는 예매 현황, 대기열, 좌석 점유를 관제합니다.</p>
+    
+    <div class="info-cards">
+      <div class="info-card"><span>동시 입장 한도 (Page A)</span><strong>{config.max_active_users}</strong></div>
+      <div class="info-card"><span>총 좌석 재고 (Stock)</span><strong>{len(config.seat_ids)}</strong></div>
+      <div class="info-card"><span>좌석 선점 TTL(초)</span><strong>{config.hold_seconds}s</strong></div>
+    </div>
+    
+    <div class="btn-row" style="max-width: 500px; margin: 0 auto;">
+      <button class="btn btn-outline" onclick="advanceQueue()">대기열 1명 밀어넣기 (Advance)</button>
+      <button class="btn btn-outline" style="color:var(--red-dark);" onclick="resetDemo()">DB 초기화 (Reset)</button>
+    </div>
   </div>
-  <section class="panel"><div class="panel-body">
-    <span class="flag">OPS</span>
-    <h2 class="title">운영자 상태 확인 화면</h2>
-    <p class="lead">현재 입장 완료자, 대기열, 좌석 점유 상태를 바로 볼 수 있게 만들어 테스트를 쉽게 하는 페이지입니다.</p>
-    <div class="cards">
-      <div class="card"><small>Page A 수용 인원</small><strong>{config.max_active_users}</strong></div>
-      <div class="card"><small>등록 좌석 수</small><strong>{len(config.seat_ids)}</strong></div>
-      <div class="card"><small>홀드 유지 시간</small><strong>{config.hold_seconds}s</strong></div>
+
+  <div class="grid-three" style="margin-top: 24px;">
+    <div class="box box-p">
+      <h3 class="title-lg" style="font-size:20px;">현장 예매자 (Page A)</h3>
+      <div id="admittedUsers" class="list" style="margin-top:16px;"></div>
     </div>
-    <div class="button-row">
-      <button class="secondary" onclick="advanceQueue()">대기열 1명 입장</button>
-      <button class="secondary" onclick="resetDemo()">데모 초기화</button>
+    <div class="box box-p">
+      <h3 class="title-lg" style="font-size:20px;">대기열 (ZSET 큐)</h3>
+      <div id="waitingUsers" class="list" style="margin-top:16px;"></div>
     </div>
-  </div></section>
-  <section class="grid-three" style="margin-top:18px;">
-    <section class="panel"><div class="panel-body"><h3 class="title" style="font-size:24px;">현재 Page A 입장자</h3><div id="admittedUsers" class="list" style="margin-top:16px;"></div></div></section>
-    <section class="panel"><div class="panel-body"><h3 class="title" style="font-size:24px;">대기열</h3><div id="waitingUsers" class="list" style="margin-top:16px;"></div></div></section>
-    <section class="panel"><div class="panel-body"><h3 class="title" style="font-size:24px;">좌석 상태</h3><div id="seatState" class="list" style="margin-top:16px;"></div></div></section>
-  </section>
+    <div class="box box-p">
+      <h3 class="title-lg" style="font-size:20px;">좌석 보존 현황</h3>
+      <div id="seatState" class="list" style="margin-top:16px;"></div>
+    </div>
+  </div>
 </div>
 """
     script = """
@@ -576,15 +558,15 @@ async function api(path, options = {}) {
 
 function renderList(targetId, items, formatter, emptyText) {
   const target = document.getElementById(targetId);
-  target.innerHTML = items.length ? items.map(formatter).join("") : `<div class="empty">${emptyText}</div>`;
+  target.innerHTML = items.length ? items.map(formatter).join("") : `<div class="empty-state">${emptyText}</div>`;
 }
 
 async function refreshOps() {
   const state = await api("/api/state");
-  renderList("admittedUsers", state.admitted_users || [], (user) => `<div class="list-item"><strong>입장</strong><span>${user}</span></div>`, "현재 입장한 사용자가 없습니다.");
-  renderList("waitingUsers", state.waiting_users || [], (user, index) => `<div class="list-item"><strong>${index + 1}번</strong><span>${user}</span></div>`, "현재 대기열이 비어 있습니다.");
+  renderList("admittedUsers", state.admitted_users || [], (user) => `<div class="list-item"><strong>입장함</strong><span>${user}</span></div>`, "현재 방어중인 입장자가 없습니다.");
+  renderList("waitingUsers", state.waiting_users || [], (user, index) => `<div class="list-item"><strong>${index + 1}번째 대기</strong><span>${user}</span></div>`, "대기열 큐가 깨끗합니다.");
   const seatItems = Object.entries(state.seats || {}).map(([seatId, holder]) => ({ seatId, holder }));
-  renderList("seatState", seatItems, (entry) => `<div class="list-item"><strong>${entry.seatId}</strong><span>${entry.holder || "비어 있음"}</span></div>`, "좌석 정보가 없습니다.");
+  renderList("seatState", seatItems, (entry) => `<div class="list-item"><strong>${entry.seatId}번 좌석</strong><span>${entry.holder || "비어 있음 (판매중)"}</span></div>`, "판매 좌석 정보가 없습니다.");
 }
 
 async function advanceQueue() {
@@ -608,4 +590,4 @@ async function resetDemo() {
 refreshOps();
 setInterval(refreshOps, 2000);
 """
-    return _page("PyMiniRedis Operator View", body, script)
+    return _page("PyMiniRedis Ticketlink - Admin", body, script)

@@ -84,25 +84,23 @@ class TicketingService:
     def status(self, user_id: str) -> dict[str, object]:
         with self._client() as client:
             self._bootstrap_with(client)
-            if client.get(self._admission_key(user_id)) == "admitted":
-                payload = self._admitted_payload(client, user_id)
-            else:
-                rank = client.zrank(self._queue_key(), user_id)
-                if rank >= 0:
-                    payload = self._waiting_payload(client, user_id, rank)
-                else:
-                    reservation = client.hgetall(self._reservation_key(user_id))
-                    if reservation:
-                        payload = {
-                            "status": reservation.get("status", "reservation"),
-                            "user_id": user_id,
-                            "reservation": reservation,
-                            "state": self._state_payload(client),
-                        }
-                    else:
-                        payload = {"status": "not_found", "user_id": user_id, "state": self._state_payload(client)}
+            reservation = client.hgetall(self._reservation_key(user_id))
+            if reservation:
+                return {
+                    "status": reservation.get("status", "reservation"),
+                    "user_id": user_id,
+                    "reservation": reservation,
+                    "state": self._state_payload(client),
+                }
 
-            return payload
+            if client.get(self._admission_key(user_id)) == "admitted":
+                return self._admitted_payload(client, user_id)
+
+            rank = client.zrank(self._queue_key(), user_id)
+            if rank >= 0:
+                return self._waiting_payload(client, user_id, rank)
+            
+            return {"status": "not_found", "user_id": user_id, "state": self._state_payload(client)}
 
     def advance_queue(self, count: int = 1) -> dict[str, object]:
         promoted: list[str] = []

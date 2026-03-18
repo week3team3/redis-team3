@@ -11,6 +11,12 @@ const state = {
   serverOnline: false,
   seats: [],
   selectedSeatId: null,
+  diagnostics: {
+    conflictFailures: 0,
+    manualWins: 0,
+    simulatorWins: 0,
+    backendErrors: 0,
+  },
   simulation: {
     running: false,
     rpm: 60,
@@ -44,7 +50,14 @@ const ui = {
   totalRequestsMetric: document.getElementById("totalRequestsMetric"),
   successRequestsMetric: document.getElementById("successRequestsMetric"),
   failedRequestsMetric: document.getElementById("failedRequestsMetric"),
+  conflictMetric: document.getElementById("conflictMetric"),
+  manualWinsMetric: document.getElementById("manualWinsMetric"),
+  simWinsMetric: document.getElementById("simWinsMetric"),
+  successRateMetric: document.getElementById("successRateMetric"),
   simStatusPill: document.getElementById("simStatusPill"),
+  snapshotSummary: document.getElementById("snapshotSummary"),
+  conflictSummary: document.getElementById("conflictSummary"),
+  integritySummary: document.getElementById("integritySummary"),
   rpmInput: document.getElementById("rpmInput"),
   workerInput: document.getElementById("workerInput"),
   strategySelect: document.getElementById("strategySelect"),
@@ -98,6 +111,7 @@ function renderAll() {
   renderMetrics();
   renderSimulationStats();
   renderLogs();
+  renderDiagnostics();
 }
 
 function renderShowInfo() {
@@ -140,6 +154,12 @@ function renderSimulationStats() {
   ui.totalRequestsMetric.textContent = String(state.simulation.stats.total);
   ui.successRequestsMetric.textContent = String(state.simulation.stats.success);
   ui.failedRequestsMetric.textContent = String(state.simulation.stats.failed);
+  ui.conflictMetric.textContent = String(state.diagnostics.conflictFailures);
+  ui.manualWinsMetric.textContent = String(state.diagnostics.manualWins);
+  ui.simWinsMetric.textContent = String(state.diagnostics.simulatorWins);
+  const total = state.simulation.stats.total || 0;
+  const rate = total === 0 ? 0 : Math.round((state.simulation.stats.success / total) * 100);
+  ui.successRateMetric.textContent = `${rate}%`;
   ui.simStatusPill.textContent = state.simulation.running ? "Running" : "Stopped";
 }
 
@@ -158,6 +178,51 @@ function renderLogs() {
     `;
     ui.logStream.appendChild(item);
   });
+}
+
+function renderDiagnostics() {
+  const remaining = state.seats.filter((seat) => seat.status === "available").length;
+  const booked = state.seats.filter((seat) => seat.status === "booked").length;
+  const unknownStatusCount = state.seats.filter((seat) => !["available", "booked", "held"].includes(seat.status)).length;
+  const selectedExists = state.selectedSeatId ? Boolean(getSeatById(state.selectedSeatId)) : true;
+  const simulatorOwned = state.seats.filter((seat) => String(seat.owner || "").startsWith("simulator")).length;
+  const manualOwned = state.seats.filter((seat) => seat.owner === "manual").length;
+  const total = state.seats.length;
+
+  setSummaryList(ui.snapshotSummary, [
+    summaryItem(`Back-end status: ${state.serverOnline ? "online" : "offline"}`, state.serverOnline ? "good" : "bad"),
+    summaryItem(`Remaining seats: ${remaining} / ${total}`, "good"),
+    summaryItem(`Booked seats: ${booked}`, "warn"),
+    summaryItem(`Current selection: ${state.selectedSeatId || "None"}`, selectedExists ? "good" : "bad"),
+  ]);
+
+  setSummaryList(ui.conflictSummary, [
+    summaryItem(`Conflict failures recorded: ${state.diagnostics.conflictFailures}`, state.diagnostics.conflictFailures > 0 ? "warn" : "good"),
+    summaryItem(`Manual wins recorded: ${state.diagnostics.manualWins}`, "good"),
+    summaryItem(`Simulator wins recorded: ${state.diagnostics.simulatorWins}`, "good"),
+    summaryItem(`Back-end request errors: ${state.diagnostics.backendErrors}`, state.diagnostics.backendErrors > 0 ? "bad" : "good"),
+  ]);
+
+  setSummaryList(ui.integritySummary, [
+    summaryItem(`Seat totals consistent: ${remaining + booked <= total ? "yes" : "no"}`, remaining + booked <= total ? "good" : "bad"),
+    summaryItem(`Unknown seat statuses: ${unknownStatusCount}`, unknownStatusCount === 0 ? "good" : "bad"),
+    summaryItem(`Seats booked by manual flow: ${manualOwned}`, "good"),
+    summaryItem(`Seats booked by simulator flow: ${simulatorOwned}`, "warn"),
+  ]);
+}
+
+function setSummaryList(target, items) {
+  target.innerHTML = "";
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = item.tone;
+    li.textContent = item.label;
+    target.appendChild(li);
+  });
+}
+
+function summaryItem(label, tone) {
+  return { label, tone };
 }
 
 function selectSeat(seatId) {
@@ -195,10 +260,14 @@ async function runManualAction(action) {
     state.simulation.stats.total += 1;
     if (payload.ok) {
       state.simulation.stats.success += 1;
+      state.diagnostics.manualWins += action === "book" ? 1 : 0;
       ui.bookingFeedback.textContent = payload.message;
       addLog("manual", payload.message, "success");
     } else {
       state.simulation.stats.failed += 1;
+      if (payload.message.includes("not available") || payload.message.includes("cannot be canceled")) {
+        state.diagnostics.conflictFailures += 1;
+      }
       ui.bookingFeedback.textContent = payload.message;
       addLog("manual", payload.message, "fail");
     }
@@ -206,6 +275,7 @@ async function runManualAction(action) {
     state.serverOnline = false;
     state.simulation.stats.total += 1;
     state.simulation.stats.failed += 1;
+    state.diagnostics.backendErrors += 1;
     ui.bookingFeedback.textContent = `Request failed: ${error.message}`;
     addLog("manual", `Request failed: ${error.message}`, "fail");
   }
@@ -223,6 +293,7 @@ async function refreshFromBackend() {
     renderAll();
   } catch (error) {
     state.serverOnline = false;
+    state.diagnostics.backendErrors += 1;
     ui.bookingFeedback.textContent = `Back-end refresh failed: ${error.message}`;
     addLog("system", `Back-end refresh failed: ${error.message}`, "fail");
     renderAll();
@@ -286,17 +357,26 @@ async function runSimulatorTick(workerId) {
 
     if (payload.ok) {
       state.simulation.stats.success += 1;
+      if (shouldCancel) {
+        state.diagnostics.manualWins += 0;
+      } else {
+        state.diagnostics.simulatorWins += 1;
+      }
       addLog("simulator", `worker-${workerId}: ${payload.message}`, "success");
       if (payload.seat && payload.seat.id === state.selectedSeatId) {
         ui.bookingFeedback.textContent = payload.message;
       }
     } else {
       state.simulation.stats.failed += 1;
+      if (payload.message.includes("No seat is available") || payload.message.includes("not available")) {
+        state.diagnostics.conflictFailures += 1;
+      }
       addLog("simulator", `worker-${workerId}: ${payload.message}`, "fail");
     }
   } catch (error) {
     state.serverOnline = false;
     state.simulation.stats.failed += 1;
+    state.diagnostics.backendErrors += 1;
     addLog("simulator", `worker-${workerId}: request failed: ${error.message}`, "fail");
   }
 

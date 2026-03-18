@@ -89,7 +89,7 @@
         <div class="panel-header">
           <div>
             <p class="panel-kicker">Auto Simulator</p>
-            <h2>Traffic Logs and Auto Request Controls</h2>
+            <h2>Traffic Logs, Metrics, and Load Controls</h2>
           </div>
           <div class="sim-pill" id="simStatusPill">Stopped</div>
         </div>
@@ -107,6 +107,33 @@
             </div>
           </div>
           <div id="logStream" class="log-stream"></div>
+        </section>
+
+        <section class="stats-card">
+          <div class="subhead">
+            <div>
+              <h3>Concurrency Metrics</h3>
+              <p>These cards help you see contention, stability, and booking pressure at a glance.</p>
+            </div>
+          </div>
+          <div class="metric-grid">
+            <article class="mini-metric">
+              <span class="mini-label">Conflict Failures</span>
+              <strong id="conflictMetric">0</strong>
+            </article>
+            <article class="mini-metric">
+              <span class="mini-label">Manual Wins</span>
+              <strong id="manualWinsMetric">0</strong>
+            </article>
+            <article class="mini-metric">
+              <span class="mini-label">Simulator Wins</span>
+              <strong id="simWinsMetric">0</strong>
+            </article>
+            <article class="mini-metric">
+              <span class="mini-label">Success Rate</span>
+              <strong id="successRateMetric">0%</strong>
+            </article>
+          </div>
         </section>
 
         <section class="sim-controls">
@@ -148,6 +175,29 @@
         </section>
       </section>
     </main>
+
+    <section class="panel summary-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">Integrity Summary</p>
+          <h2>Conflicts and State Consistency</h2>
+        </div>
+      </div>
+      <div class="summary-grid">
+        <article class="summary-card">
+          <h3>System Snapshot</h3>
+          <ul id="snapshotSummary" class="summary-list"></ul>
+        </article>
+        <article class="summary-card">
+          <h3>Conflict Summary</h3>
+          <ul id="conflictSummary" class="summary-list"></ul>
+        </article>
+        <article class="summary-card">
+          <h3>Integrity Checks</h3>
+          <ul id="integritySummary" class="summary-list"></ul>
+        </article>
+      </div>
+    </section>
   </div>
 
   <script src="./app.js"></script>

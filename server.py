@@ -29,6 +29,7 @@ from typing import Any, Optional
 
 HOST = os.getenv("MINI_REDIS_HOST", "127.0.0.1")
 PORT = int(os.getenv("MINI_REDIS_PORT", "6380"))
+SESSION_IDLE_TTL = 10
 SWEEP_INTERVAL = float(os.getenv("MINI_REDIS_SWEEP_INTERVAL", "1.0"))
 SNAPSHOT_PATH = os.getenv("MINI_REDIS_SNAPSHOT_PATH", "")
 
@@ -248,6 +249,14 @@ def admitted_key(event_id: str, user_id: str) -> str:
     return f"{event_prefix(event_id)}admitted:{user_id}"
 
 
+def session_key(event_id: str, user_id: str) -> str:
+    return f"{event_prefix(event_id)}session:{user_id}"
+
+
+def touch_session_locked(event_id: str, user_id: str) -> None:
+    set_string_locked(session_key(event_id, user_id), "1", ex=SESSION_IDLE_TTL)
+
+
 def clear_event_locked(event_id: str) -> None:
     prefix = event_prefix(event_id)
     for key in [key for key in list(store.keys()) if key.startswith(prefix)]:
@@ -330,7 +339,22 @@ def cleanup_ticket_event_locked(event_id: str) -> None:
         return
 
     changed = False
-    released_users: list[str] = []
+
+    # Handle expired sessions (Idle timeout)
+    queue_key = event_queue_key(event_id)
+    zset = get_zset_locked(queue_key)
+    if zset is not None:
+        for q_uid in list(zset.keys()):
+            if get_visible_entry_locked(session_key(event_id, q_uid)) is None:
+                zset.pop(q_uid, None)
+                changed = True
+
+    admitted_users = get_admitted_users_locked(event_id)
+    for a_uid in admitted_users:
+        if get_visible_entry_locked(session_key(event_id, a_uid)) is None:
+            delete_key_locked(reservation_key(event_id, a_uid))
+            release_admission_locked(event_id, a_uid)
+            changed = True
 
     for seat_id in meta["seats"]:
         raw = read_string_locked(seat_key(event_id, seat_id))
@@ -341,11 +365,7 @@ def cleanup_ticket_event_locked(event_id: str) -> None:
         if reservation_raw == seat_id:
             continue
         set_string_locked(seat_key(event_id, seat_id), "AVAILABLE")
-        released_users.append(user_id)
         changed = True
-
-    for user_id in released_users:
-        release_admission_locked(event_id, user_id)
 
     if changed:
         promote_from_queue_locked(event_id)
@@ -442,6 +462,7 @@ def ticket_state_locked(event_id: str) -> dict[str, Any]:
 
 
 def ticket_status_locked(event_id: str, user_id: str) -> dict[str, Any]:
+    touch_session_locked(event_id, user_id)
     cleanup_ticket_event_locked(event_id)
     state = ticket_state_locked(event_id)
     if not state["ok"]:
@@ -493,6 +514,7 @@ def ticket_init_locked(event_id: str, active_limit: int, hold_seconds: int, seat
 
 
 def ticket_enter_locked(event_id: str, user_id: str) -> dict[str, Any]:
+    touch_session_locked(event_id, user_id)
     meta = load_event_meta_locked(event_id)
     if meta is None:
         return {"ok": False, "reason": "event_not_found", "event_id": event_id}
@@ -525,6 +547,7 @@ def ticket_exit_locked(event_id: str, user_id: str) -> dict[str, Any]:
         return {"ok": False, "reason": "event_not_found", "event_id": event_id}
 
     cleanup_ticket_event_locked(event_id)
+    delete_key_locked(session_key(event_id, user_id))
     reservation = read_string_locked(reservation_key(event_id, user_id))
     if reservation is not None:
         return {"ok": False, "reason": "reservation_exists", "event_id": event_id, "user_id": user_id}
@@ -543,6 +566,7 @@ def ticket_exit_locked(event_id: str, user_id: str) -> dict[str, Any]:
 
 
 def ticket_hold_locked(event_id: str, user_id: str, seat_id: str) -> dict[str, Any]:
+    touch_session_locked(event_id, user_id)
     meta = load_event_meta_locked(event_id)
     if meta is None:
         return {"ok": False, "reason": "event_not_found", "event_id": event_id}
@@ -576,6 +600,7 @@ def ticket_hold_locked(event_id: str, user_id: str, seat_id: str) -> dict[str, A
 
 
 def ticket_confirm_locked(event_id: str, user_id: str) -> dict[str, Any]:
+    touch_session_locked(event_id, user_id)
     meta = load_event_meta_locked(event_id)
     if meta is None:
         return {"ok": False, "reason": "event_not_found", "event_id": event_id}
@@ -606,6 +631,7 @@ def ticket_confirm_locked(event_id: str, user_id: str) -> dict[str, Any]:
 
 
 def ticket_cancel_locked(event_id: str, user_id: str) -> dict[str, Any]:
+    touch_session_locked(event_id, user_id)
     meta = load_event_meta_locked(event_id)
     if meta is None:
         return {"ok": False, "reason": "event_not_found", "event_id": event_id}
@@ -620,15 +646,14 @@ def ticket_cancel_locked(event_id: str, user_id: str) -> dict[str, Any]:
         set_string_locked(seat_key(event_id, seat_id), "AVAILABLE")
 
     delete_key_locked(reservation_key(event_id, user_id))
-    release_admission_locked(event_id, user_id)
-    promoted = promote_from_queue_locked(event_id)
+    
     return {
         "ok": True,
         "status": "CANCELLED",
         "event_id": event_id,
         "user_id": user_id,
         "seat_id": seat_id,
-        "promoted": promoted,
+        "promoted": [],
     }
 
 

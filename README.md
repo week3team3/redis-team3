@@ -228,13 +228,41 @@ TTL과 삭제를 같이 보면 상태 무효화 흐름을 보기 좋습니다.
 즉, `선착순`, `쿠폰 발급`, `좌석 점유` 같은 문제를  
 `공유 상태 저장소 반영 시점`과 `응답 반환 시점` 관점에서 실험해보기 위한 프로젝트입니다.
 
-## Git
+## Branch Usage
 
-기본 git 작업 흐름:
+이 작업 내용은 현재 `redis-test` 브랜치에 올라가 있습니다.  
+`main`이 아니라 이 브랜치로 내려받아 실험하면 됩니다.
+
+### 이미 저장소가 있는 경우
 
 ```bash
-git checkout -b 브랜치명
-git add .
-git commit -m "변경사항 : 내용"
-git push origin 브랜치명
+git fetch origin
+git switch redis-test
+```
+
+로컬에 아직 브랜치가 없으면:
+
+```bash
+git fetch origin
+git switch -c redis-test --track origin/redis-test
+```
+
+### 처음 clone 하는 경우
+
+```bash
+git clone https://github.com/week3team3/redis-team3.git
+cd redis-team3
+git switch -c redis-test --track origin/redis-test
+```
+
+### 현재 브랜치 확인
+
+```bash
+git branch --show-current
+```
+
+정상이라면 아래처럼 나와야 합니다.
+
+```text
+redis-test
 ```

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mini Redis Ticketing</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="screen-frame">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Mini Redis Ticketing Lab</p>
+          <h1>공연 예매 좌석 선택</h1>
+          <p class="subline">티켓링크 스타일 좌석 선택 흐름으로 대기열, 입장, hold/confirm, TTL 만료를 한 화면에서 확인합니다.</p>
+        </div>
+        <div class="topbar-actions">
+          <button id="refreshButton" class="ghost-button">새로고침</button>
+          <span id="serverStatus" class="status-pill">connecting</span>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="seat-shell">
+          <div class="stage-card">
+            <div class="stage-wings">
+              <span>BOX 1</span>
+              <span>BOX 2</span>
+            </div>
+            <div class="stage-title">STAGE</div>
+            <p>좌석을 누른 뒤 오른쪽에서 hold / confirm / cancel 흐름을 바로 실험할 수 있습니다.</p>
+          </div>
+
+          <section class="event-banner">
+            <div>
+              <p class="eyebrow">Ticket Selection</p>
+              <h2 id="eventTitle">concert-demo</h2>
+              <p id="eventSubtitle">입장 인원 제한과 대기열을 포함한 티켓팅 시뮬레이션</p>
+            </div>
+            <div class="legend">
+              <span><i class="seat-dot available"></i> Available</span>
+              <span><i class="seat-dot held"></i> Held</span>
+              <span><i class="seat-dot sold"></i> Sold</span>
+            </div>
+          </section>
+
+          <section class="seat-board">
+            <div class="seat-board-header">
+              <h3>Seat Map</h3>
+              <p id="selectedSeatInfo">선택된 좌석 없음</p>
+            </div>
+            <p class="seat-helper">좌석은 중앙 블록 위주로, 부가 제어 패널은 오른쪽에 배치했습니다. 모바일에서는 패널이 아래로 내려갑니다.</p>
+            <div id="seatBoard" class="seat-board-scroll"></div>
+          </section>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel">
+            <div class="panel-header">
+              <h3>운영 지표</h3>
+              <p id="storeStats">keys=0</p>
+            </div>
+            <div class="metrics-grid">
+              <article><span>Active</span><strong id="metricActive">0</strong></article>
+              <article><span>Waiting</span><strong id="metricWaiting">0</strong></article>
+              <article><span>Available</span><strong id="metricAvailable">0</strong></article>
+              <article><span>Held</span><strong id="metricHeld">0</strong></article>
+              <article><span>Sold</span><strong id="metricSold">0</strong></article>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>이벤트 설정</h3>
+            </div>
+            <label>Event ID<input id="eventIdInput" value="concert-demo"></label>
+            <label>Active Limit<input id="activeLimitInput" value="2"></label>
+            <label>Hold TTL<input id="holdTtlInput" value="20"></label>
+            <label>Seats CSV<textarea id="seatsCsvInput" placeholder="비워두면 기본 티켓링크형 좌석 맵을 사용합니다."></textarea></label>
+            <div class="stack-buttons">
+              <button id="initButton" class="primary-button">이벤트 초기화</button>
+              <button id="resetButton" class="secondary-button">대기열 리셋</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>수동 사용자 조작</h3>
+              <p id="userState">사용자 상태 없음</p>
+            </div>
+            <label>User ID<input id="userIdInput" value="user-a"></label>
+            <div class="stack-buttons">
+              <button id="enterButton" class="primary-button">예매 입장</button>
+              <button id="statusButton" class="ghost-button">상태 확인</button>
+              <button id="holdButton" class="accent-button">선택 좌석 Hold</button>
+              <button id="confirmButton" class="secondary-button">Confirm</button>
+              <button id="cancelButton" class="danger-button">Cancel</button>
+              <button id="exitButton" class="ghost-button">입장 이탈</button>
+            </div>
+          </section>
+
+          <section class="panel split-panel">
+            <div>
+              <div class="panel-header">
+                <h3>입장자</h3>
+              </div>
+              <ul id="admittedList" class="list-box"></ul>
+            </div>
+            <div>
+              <div class="panel-header">
+                <h3>대기열</h3>
+              </div>
+              <ul id="waitingList" class="list-box"></ul>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h3>시뮬레이션</h3>
+              <p id="simulationResult">아직 실행되지 않음</p>
+            </div>
+            <label>Users<input id="simUsersInput" value="30"></label>
+            <label>Scenario
+              <select id="simScenarioSelect">
+                <option value="same-seat">같은 좌석 경쟁</option>
+                <option value="random-seat">랜덤 좌석 러시</option>
+                <option value="queue-rush">대기열 + 취소 섞기</option>
+              </select>
+            </label>
+            <div class="stack-buttons">
+              <button id="simulateButton" class="primary-button">시뮬레이션 실행</button>
+            </div>
+          </section>
+
+          <section class="panel panel-log">
+            <div class="panel-header">
+              <h3>실행 로그</h3>
+            </div>
+            <div id="logStream" class="log-stream"></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

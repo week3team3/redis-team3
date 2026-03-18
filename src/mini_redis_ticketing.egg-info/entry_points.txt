@@ -1,0 +1,4 @@
+[console_scripts]
+mini-redis-server = mini_redis.cli:main
+ticketing-api = ticketing_api.cli:main
+ticketing-loadtest = loadtest.cli:main

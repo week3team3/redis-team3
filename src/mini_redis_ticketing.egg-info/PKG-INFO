@@ -1,3 +1,17 @@
+Metadata-Version: 2.4
+Name: mini-redis-ticketing
+Version: 0.1.0
+Summary: Mini Redis and seat-hold ticketing service built with Python asyncio.
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi<1,>=0.115
+Requires-Dist: httpx<1,>=0.27
+Requires-Dist: pydantic<3,>=2.7
+Requires-Dist: uvicorn<1,>=0.30
+Provides-Extra: dev
+Requires-Dist: pytest<9,>=8; extra == "dev"
+Requires-Dist: pytest-asyncio<1,>=0.23; extra == "dev"
+
 # Mini Redis Ticketing Service
 
 RESP2로 동작하는 Mini Redis 서버를 직접 구현하고, 이를 좌석 홀드형 티켓팅 서비스의 저장소로 연결해 대량 트래픽에서도 중복 예매 없이 정확하게 동작함을 검증하는 프로젝트입니다.
@@ -61,34 +75,20 @@ pip install -e .[dev]
 1. Mini Redis 서버 실행
 
 ```bash
-./hoseok/bin/mini-redis-server --host 127.0.0.1 --port 6380
+mini-redis-server --host 127.0.0.1 --port 6380
 ```
 
 2. Ticketing API 실행
 
 ```bash
-./hoseok/bin/ticketing-api --host 127.0.0.1 --port 8000 --redis-host 127.0.0.1 --redis-port 6380 --hold-ttl 30
+ticketing-api --host 127.0.0.1 --port 8000 --redis-host 127.0.0.1 --redis-port 6380 --hold-ttl 30
 ```
 
-3. 브라우저 데모 열기
-
-```text
-http://127.0.0.1:8000/demo
-```
-
-4. Load test 실행
+3. Load test 실행
 
 ```bash
-./hoseok/bin/ticketing-loadtest --base-url http://127.0.0.1:8000 --scenario all
+ticketing-loadtest --base-url http://127.0.0.1:8000 --scenario all
 ```
-
-브라우저 데모에서 할 수 있는 것:
-
-- 이벤트 생성
-- 좌석 hold / confirm / cancel
-- 상태와 좌석 목록 시각화
-- same-seat / random-seats / expiry 시나리오 실행
-- API / Mini Redis 상태 확인
 
 ## HTTP API
 

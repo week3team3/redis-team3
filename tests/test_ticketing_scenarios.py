@@ -80,8 +80,8 @@ class MiniRedisTicketingScenarioTest(unittest.TestCase):
         self.assertEqual(sold_seat["status"], "SOLD")
         self.assertEqual(final_state["queue_size"], 0)
 
-    def test_ticket_hold_ttl_timeout_releases_seat_and_promotes_waiter(self) -> None:
-        """좌석 hold TTL이 끝나면 좌석이 풀리고, 대기열 다음 사람이 입장되는지 본다."""
+    def test_ticket_hold_ttl_timeout_releases_seat_but_retains_admission(self) -> None:
+        """좌석 hold TTL이 끝나면 좌석이 풀리지만 유저는 대기실로 튕기지 않고 유지되는지 본다."""
 
         self.run_json("TICKET_INIT", "concert-demo", "1", "1", "A1", "A2")
         self.run_json("TICKET_ENTER", "concert-demo", "user-a")
@@ -94,15 +94,15 @@ class MiniRedisTicketingScenarioTest(unittest.TestCase):
 
         state_after_timeout = self.run_json("TICKET_STATE", "concert-demo")
         released_seat = next(seat for seat in state_after_timeout["seats"] if seat["seat_id"] == "A1")
-        promoted_user = self.run_json("TICKET_STATUS", "concert-demo", "user-b")
-        released_user = self.run_json("TICKET_STATUS", "concert-demo", "user-a")
+        waiting_user = self.run_json("TICKET_STATUS", "concert-demo", "user-b")
+        expired_hold_user = self.run_json("TICKET_STATUS", "concert-demo", "user-a")
 
         self.assertEqual(released_seat["status"], "AVAILABLE")
-        self.assertEqual(promoted_user["status"], "ADMITTED")
-        self.assertEqual(released_user["status"], "NONE")
+        self.assertEqual(expired_hold_user["status"], "ADMITTED")  # Still admitted!
+        self.assertEqual(waiting_user["status"], "WAITING")        # Still waiting because user-a is still taking the slot
 
-    def test_ticket_cancel_releases_seat_and_promotes_waiter(self) -> None:
-        """hold 취소 시 좌석이 즉시 풀리고 다음 대기자가 들어오는지 본다."""
+    def test_ticket_cancel_releases_seat_but_retains_admission(self) -> None:
+        """hold 취소 시 좌석이 풀리지만, 사용자는 여전히 입장 상태로 남아서 대기자가 들어오지 않는지 본다."""
 
         self.run_json("TICKET_INIT", "concert-demo", "1", "5", "A1", "A2")
         self.run_json("TICKET_ENTER", "concert-demo", "user-a")
@@ -114,9 +114,18 @@ class MiniRedisTicketingScenarioTest(unittest.TestCase):
 
         state_after_cancel = self.run_json("TICKET_STATE", "concert-demo")
         released_seat = next(seat for seat in state_after_cancel["seats"] if seat["seat_id"] == "A1")
-        promoted_user = self.run_json("TICKET_STATUS", "concert-demo", "user-b")
+        waiting_user = self.run_json("TICKET_STATUS", "concert-demo", "user-b")
+        cancelled_user = self.run_json("TICKET_STATUS", "concert-demo", "user-a")
 
         self.assertEqual(released_seat["status"], "AVAILABLE")
+        self.assertEqual(cancelled_user["status"], "ADMITTED")
+        self.assertEqual(waiting_user["status"], "WAITING")
+        
+        # Now finally user-a truly exits.
+        exited = self.run_json("TICKET_EXIT", "concert-demo", "user-a")
+        self.assertEqual(exited["status"], "EXITED")
+        
+        promoted_user = self.run_json("TICKET_STATUS", "concert-demo", "user-b")
         self.assertEqual(promoted_user["status"], "ADMITTED")
 
     def test_same_seat_concurrency_allows_only_one_hold(self) -> None:

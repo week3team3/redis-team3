@@ -45,6 +45,12 @@
           </section>
 
           <section class="seat-board">
+            <div id="queueOverlay" class="queue-overlay hidden">
+              <div class="spinner"></div>
+              <h2>접속 대기 중입니다</h2>
+              <p>현재 대기 순서: <strong id="queuePosition">0</strong>번째</p>
+              <p class="queue-subtext">잠시만 기다려 주시면 예매 화면으로 자동 이동합니다.</p>
+            </div>
             <div class="seat-board-header">
               <h3>Seat Map</h3>
               <p id="selectedSeatInfo">선택된 좌석 없음</p>
@@ -117,8 +123,8 @@
           <section class="panel">
             <div class="panel-header">
               <h3>시뮬레이션</h3>
-              <p id="simulationResult">아직 실행되지 않음</p>
             </div>
+            <div id="simulationResult" class="simulation-result">아직 실행되지 않음</div>
             <label>Users<input id="simUsersInput" value="30"></label>
             <label>Scenario
               <select id="simScenarioSelect">

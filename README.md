@@ -1,268 +1,100 @@
-# Redis RESP Learning Project
-
-Python socket으로 만든 학습용 미니 Redis 서버입니다.  
-목표는 완전한 Redis 구현이 아니라, `RESP 파싱 -> 명령 처리 -> 응답 생성 -> 상태 저장소 반영` 흐름을 직접 실험해보는 것입니다.
+# 🎫 Mini Redis 기반 대용량 티켓팅 웹 시스템 (팀 3)
 
-이 프로젝트로 볼 수 있는 핵심은 아래입니다.
-
-- 문자열 split 서버가 아니라 RESP 프로토콜 서버로 요청을 처리하는 흐름
-- 여러 클라이언트가 같은 key를 공유할 때 상태가 어떻게 반영되는지
-- `safe`한 상태 변경과 `unsafe`한 상태 변경이 왜 다른지
-- TTL 만료, 삭제, 조회 같은 무효화 흐름
-- GUI에서 사용자 화면 반영과 실제 서버 상태가 어떻게 어긋날 수 있는지
+> **수요 코딩회 프로젝트**
+> *단 하루, AI를 도구 삼아 극한의 학습 민첩성을 발휘하며 현업 레벨의 시스템을 직접 구현해보았습니다.*
 
-## Files
+<div align="center">
+  <img src="./webapp/screenshot.png" alt="시스템 시연 캡처" width="70%" />
+</div>
 
-- `server.py`
-  - TCP 서버
-  - RESP 요청 파싱
-  - 명령 처리
-  - RESP 응답 생성
-  - 인메모리 상태 저장소(dict) 관리
-- `client.py`
-  - CLI 테스트 클라이언트
-  - GUI 실험 클라이언트
-  - safe/unsafe 동시성 비교 실험
+---
+## 아키텍처
+🌐 1. Presentation Layer (웹 UI)
+🌉 2. Application Layer (API Gateway / 브릿지 서버)
+🗄️ 3. Data / Core Layer (미니 레디스 인메모리 엔진)
 
-## Server Structure
+## 📌 1. 프로젝트 개요 및 목적
+이번 과제의 핵심은 단순히 웹사이트를 렌더링하는 것을 넘어, **해시 테이블(Hash Table) 기반의 키-값(Key-Value) 저장소인 '미니 레디스(Mini Redis)'를 밑바닥부터 직접 설계하고 구현**하는 것입니다. 
+저희 팀은 이를 가장 잘 다룰 수 있는 극한의 동시성 도메인인 **'티켓팅 대기열 및 좌석 예매 시스템'**을 미니 레디스 위에서 완성하여 엣지 케이스를 테스트하고, 시각적 웹 브릿지를 통해 결과를 시연합니다.
 
-- `parse_resp()`
-  - 입력 파싱부
-  - TCP로 들어온 바이트를 RESP 규칙대로 읽어서 `['SET', 'a', '10']` 같은 토큰으로 바꿉니다.
-- `handle_command()`
-  - 명령 처리부
-  - 저장소(dict)를 읽고/쓰고/삭제하고/감소시키는 실제 로직이 들어 있습니다.
-- `build_resp_response()`
-  - 출력 응답부
-  - 처리 결과를 `+OK`, bulk string, integer, error 같은 RESP 응답으로 만듭니다.
-- `store`
-  - 인메모리 상태 저장소
-  - 서버가 켜져 있는 동안만 값이 유지되고, 서버를 재시작하면 사라집니다.
+---
 
-## Supported Commands
-
-기본 명령:
-
-- `SET key value`
-- `GET key`
-- `DEL key`
-
-추가 명령:
-
-- `EXISTS key`
-- `INCR key`
-- `DECR key`
-- `SET key value NX`
-- `CLAIM key`
-  - 재고가 남아 있을 때만 1 감소시키는 쿠폰/재고용 명령
-- `EXPIRE key seconds`
-  - TTL 설정
-- `TTL key`
-  - 남은 TTL 확인
-
-## RESP Examples
+## 🤝 2. 팀 협업 및 아키텍처 병합 과정 (Merge Strategy)
+단 하루의 짧은 시간 속에서, 4명의 팀원이 각자 '미니 레디스'를 밑바닥부터 독자 구현하며 치열하게 학습했습니다. 이후 **각 브랜치에서 가장 특화되고 뛰어난 아이디어만 모아 Codex를 활용해 하나의 완성본으로 융합(Merge)**하는 파격적인 전략을 택했습니다.
 
-예를 들어 `SET a 10`은 실제로 이런 RESP 요청으로 바뀝니다.
+### 💡 팀원별 특화 아이디어 추출
 
-```text
-*3\r\n$3\r\nSET\r\n$1\r\na\r\n$2\r\n10\r\n
-```
 
-`GET a`는 이렇게 갑니다.
+### 🌉 프로토콜의 벽을 허문 '브릿지(Bridge) 서버' 중계 아키텍처
+각자의 코드를 합치려다 보니, 백엔드 코어는 **순수 TCP 소켓(RESP Protocol)**을 사용하고 프론트 UI는 **HTTP(REST API)**를 사용해 서로 대화할 수 없는 장벽에 부딪혔습니다.
+저희는 이를 극복하기 위해 웹(HTTP)과 소켓(TCP) 서버 사이에 **브릿지(Bridge) 역할을 하는 API 서버(`client.py`)**를 구현했습니다. 
+프론트엔드의 JSON HTTP 통신을 브릿지 서버(API)가 받아, 내부적으로 RESP 규격에 맞게 직렬화해 코어 소켓 서버(`server.py`)로 중계하는 3-Tier 아키텍처로 통일 병합을 완수했습니다.
 
-```text
-*2\r\n$3\r\nGET\r\n$1\r\na\r\n
-```
+---
 
-응답 예시는 아래처럼 나옵니다.
+## 🛠️ 3. 해시 테이블 설계 원리 및 동작 방식
+본 프로젝트의 심장인 데이터 저장소(`store`)는 파이썬의 핵심 내장 자료구조인 `dict`(Hash Table)를 기반으로 동작하도록 설계했습니다. 
+- **설계 원리**: 메모리에 직접 해시된 키를 변환하여 값을 읽고 쓰는 $\mathcal{O}(1)$ 시간 복잡도를 가져, 디스크 I/O 없이 초고속 처리가 가능합니다.
+- **Entry 구조**: 단순히 문자열만 저장하는 것이 아닌, 만료 시간(`expires_at`)과 무효화 플래그(`invalidated_at`) 메타데이터를 품을 수 있는 `Entry` 객체 형태로 캡슐화했습니다.
+- **주요 함수 (CRUD)**: `set_string_locked(key, val)`, `read_string_locked(key)`, `delete_key_locked(key)` 등으로 구성되며, 모든 동작은 스레드 락(`Threading.RLock`) 환경에서 원자적으로 처리됩니다.
 
-```text
-+OK\r\n
-$2\r\n10\r\n
-$-1\r\n
-:1\r\n
--ERR wrong number of arguments\r\n
-```
+---
 
-## Run
+## 🚨 4. 중점 해결 과제 (단 하루의 치열한 고민들)
 
-프로젝트 폴더로 이동:
+### 4-1. 수만 명이 동시에 접속한다면? (동시성 제어 아키텍처)
+인기 콘서트의 경우 0.1초 사이에 같은 좌석을 천 명이 클릭하는 병목 현상(이선좌)이 발생합니다.
+- **아키텍처 관점의 해결**: 단일 프로세스/스레드 이벤트 루프를 구성하고 파이썬의 `threading.RLock`을 도입했습니다. 외부 API가 동시에 수백 건의 좌석 선점(`TICKET_HOLD`) 명령을 보내더라도, Redis 내부에서는 자물쇠(Lock)를 채운 뒤 순차적 원자 처리를 보장함으로써 오버셀링(Over-selling)을 원천 차단했습니다.
 
-```bash
-cd /Users/hmm/Desktop/jungle/project/redis/redis-team3
-```
+### 4-2. 만료된 티켓과 무단 잠수 유저의 처리 방안 (TTL/Expiration)
+단순한 저장이 아니라 "시간이 흐르면 자연스럽게 사라져야 하는 상태"를 구현했습니다.
+- **좌석 Hold TTL**: 사용자가 좌석을 찜해두고(`HELD`) 10분 내에 결제하지 않으면, 만료된 데이터를 백그라운드 스레드(Sweeper)가 찾아 좌석을 공석(`AVAILABLE`)으로 반납합니다.
+- **세션 미활동 TTL**: 대기열 혹은 예매 화면에서 10초 이상 활동(명령어 시도)이 없으면, 서버가 자동으로 유저의 세션 키를 폭파하고 쫓아내어 다음 대기자에게 순서를 내어줍니다.
 
-### 1. Server Run
+### 4-3. 외부 노출을 위한 API 형태 구축
+작성된 레디스 코드를 폐쇄적으로 두지 않고, 외부 웹 서버가 완전히 통신할 수 있도록 분리했습니다.
+- **RESP 연동**: `server.py`는 오직 TCP 소켓만 열어두고 RESP(REdis Serialization Protocol) 기반으로 Array/Bulk 파싱만 받습니다.
+- **웹 브릿지 API**: 앞서 설명한 브릿지 서버(`client.py`)의 `ThreadingHTTPServer`가 RESTful API(JSON) 요청을 받고, 이를 RESP 바이너리로 직렬화하여 서버에 넘기며 응답 결과를 웹 UI(HTML/CSS)에 반영하도록 설계했습니다.
 
-```bash
-python3 server.py
-```
+### 4-4. 데이터 무효화 (Deprecation / Invalidation) 전략
+사용자가 고의로 결제를 취소하거나, 스냅샷 복구 시 충돌을 막기 위해 **실제 즉시 메모리 삭제(Delete)**와 **무효화 태그(Invalidation)** 방식 두 가지를 고안했습니다.
+- **가비지 컬렉션(GC)**: 삭제 명령이 들어오면 TTL 만료 외에도 즉시 Entry의 valid 여부를 깎아 메모리를 효율화시키거나 ZSet에서 Pop 시켜버리는 Hard-Kill 방식을 병행했습니다.
 
-정상 실행 예시:
+### 4-5. 서버가 셧다운되는 위기 상황을 방어하라 (Persistence)
+인메모리 해시 테이블의 치명적 단점인 휘발성을 방어하기 위해 주기적으로 스냅샷을 찍습니다.
+- **해결 방안 (Point-in-time Snapshot)**: `save_snapshot_locked`가 활성화되면 모든 딕셔너리 내용을 직렬화하여 `.json` 형태로 로컬 디스크에 덤프를 남기고, 재시작 시 `load_snapshot` 파이프라인이 즉각 데이터를 복구해 대기열 정보를 살려냅니다.
 
-```text
-Mini RESP Redis server listening on 127.0.0.1:6380
-State store is a plain Python dict. Restart the server to reset all data.
-```
+---
 
-### 2. CLI Client Run
+## 🧪 5. 프로젝트 품질 및 성능 결과
 
-```bash
-python3 client.py
-```
+### 1) 치밀한 동작 검증 & 엣지 케이스 테스트 통과
+- `python3 -m unittest tests/test_ticketing_scenarios.py`를 통해 모든 기능을 모듈 레벨에서 100% 자동 검증합니다.
+- **엣지 케이스 커버**:
+  - `Cancel 로직`: 사용자가 좌석 Hold를 **취소(Cancel)** 했을 때, 입장된 상태에서는 내쫓지 않고 좌석만 포기하게 유지시켜, 빈 좌석에 대기자가 난입하는 것을 막는 세밀한 동시성 방어.
+  - `Time-out 분기`: 결제하지 않은 홀드 만료와 유저의 아무 액션이 없는 무반응 타임아웃을 나누어 튕기는 위치를 달리 적용.
 
-예시 입력:
+### 2) 외부 API 실전 사용성 (시뮬레이션 도입)
+- 프론트엔드 버튼 하나에 연동된 `/api/simulate` 엔드포인트를 통해 단 1초 만에 100명의 가상 유저 API를 난사합니다. 
+- 테스트 결과 100건 모두 성공, 실패, 대기, 튕김 등이 완벽히 조율되어 실시간 UI 스크롤에 로깅되는 것을 확인했습니다.
 
-```text
-SET stock 100
-GET stock
-CLAIM stock
-TTL stock
-DEL stock
-```
+### 3) RDBMS(일반 서버) 대비 Mini Redis의 성능 우위 비교
+만약 이 시스템을 MySQL+Node.js의 형태 등 인메모리가 아닌 디스크 기반 DB로 만들었다면 어땠을까요?
+1. **DB Lock의 한계**: Select 후 Update 하는 로직 특성 상, DB 데드락이 매우 빈번하며 트랜잭션 비용 초과 발생. 레디스는 원자 구조라 I/O 대기시간이 사실상 제로.
+2. **복잡한 쿼리 통신**: 1만 명 대기열 렌더링을 매초 `SELECT * FROM queue` 하면 DB DB 커넥션 마비. 레디스는 Zset 자료구조의 $\mathcal{O}(log N)$으로 랭킹만 뽑아 즉시 반환.
 
-### 3. GUI Client Run
+---
 
-```bash
-python3 client.py --gui
-```
+## 🎤 6. 결과물 데모 시연 가이드 (QnA 준비)
 
-## GUI Features
+저희 팀은 프론트엔드를 고도화해 누구나 눈으로 아키텍처 과정을 이해할 수 있게 웹앱 데모를 준비했습니다. 다음과 같은 순서로 시연을 진행합니다.
 
-GUI에서는 아래 기능을 바로 실험할 수 있습니다.
-
-- `Set Stock`
-  - key에 초기 재고 저장
-- `Refresh State`
-  - 현재 재고와 TTL 상태를 다시 읽어옴
-- `Claim Coupon`
-  - `CLAIM key`
-  - 재고가 있을 때만 1 감소
-- `Apply TTL`
-  - `EXPIRE key seconds`
-- `Delete Coupon Key`
-  - `DEL key`
-- `Auto Refresh (1s)`
-  - 1초마다 현재 상태를 다시 읽어옴
-- `Send`
-  - 직접 명령어 전송
-- `Concurrency Lab`
-  - safe/unsafe 동시성 비교 실험
-
-## Why Safe And Unsafe Are Different
-
-### Safe
-
-`CLAIM stock`
-
-- 서버 안에서 `읽기 -> 검사 -> 감소 -> 응답`을 한 번에 처리합니다.
-- 성공 수가 재고 수를 넘지 않도록 만드는 데 유리합니다.
-
-### Unsafe
-
-`GET stock -> 계산 -> SET stock new_value`
-
-- 읽기와 쓰기가 분리돼 있습니다.
-- 여러 사용자가 같은 이전 값을 읽고 각각 쓰면 oversell처럼 보이는 문제가 생길 수 있습니다.
-
-## Concurrency Lab
-
-GUI에서 `Run 100 Safe Claim`, `Run 100 Unsafe Buy`를 눌러 비교할 수 있습니다.
-
-실험 전에 보통 이렇게 시작하면 됩니다.
-
-1. `Initial Stock = 100`
-2. `Set Stock`
-3. `Run 100 Safe Claim`
-4. 결과 확인
-5. 다시 `Set Stock`
-6. `Run 100 Unsafe Buy`
-7. 결과 비교
-
-결과에는 아래가 표시됩니다.
-
-- `success`
-- `fail`
-- `initial`
-- `final`
-- `oversell`
-
-보통 기대하는 해석은 아래와 같습니다.
-
-- safe
-  - `success`가 재고 수량 안에서 끝남
-  - `oversell=False`
-- unsafe
-  - `success`가 초기 재고보다 커질 수 있음
-  - `oversell=True` 가능
-
-## TTL / Invalidation Test
-
-TTL과 삭제를 같이 보면 상태 무효화 흐름을 보기 좋습니다.
-
-추천 순서:
-
-1. `Set Stock`
-2. `TTL Seconds = 10`
-3. `Apply TTL`
-4. `Refresh State` 또는 `Auto Refresh`
-5. 시간이 지나면 key가 사라지는지 확인
-6. `Delete Coupon Key`로 즉시 삭제도 확인
-
-이 실험으로 볼 수 있는 것은:
-
-- 서버 상태 저장소에 값이 반영되는 방식
-- TTL 만료 시 key가 사라지는 방식
-- 사용자 화면은 주기적으로 다시 읽어와야 최신 상태를 반영한다는 점
-
-## What To Focus On
-
-이 프로젝트에서 핵심은 단순히 네트워크 지연만 보는 것이 아닙니다.  
-더 중요한 것은 아래입니다.
-
-- 상태 저장소(dict)에 값이 언제 반영되는가
-- 여러 요청이 같은 key를 어떤 순서로 변경하는가
-- 서버가 어떤 값을 기준으로 응답을 반환하는가
-- 화면은 그 값을 언제 다시 읽어오는가
-
-즉, `선착순`, `쿠폰 발급`, `좌석 점유` 같은 문제를  
-`공유 상태 저장소 반영 시점`과 `응답 반환 시점` 관점에서 실험해보기 위한 프로젝트입니다.
-
-## Branch Usage
-
-이 작업 내용은 현재 `redis-test` 브랜치에 올라가 있습니다.  
-`main`이 아니라 이 브랜치로 내려받아 실험하면 됩니다.
-
-### 이미 저장소가 있는 경우
-
-```bash
-git fetch origin
-git switch redis-test
-```
-
-로컬에 아직 브랜치가 없으면:
-
-```bash
-git fetch origin
-git switch -c redis-test --track origin/redis-test
-```
-
-### 처음 clone 하는 경우
-
-```bash
-git clone https://github.com/week3team3/redis-team3.git
-cd redis-team3
-git switch -c redis-test --track origin/redis-test
-```
-
-### 현재 브랜치 확인
-
-```bash
-git branch --show-current
-```
-
-정상이라면 아래처럼 나와야 합니다.
-
-```text
-redis-test
-```
+1. **대기열 락 큐잉 (Wait Queueing)**
+   - 이벤트 초기화(`Active Limit = 2 명`) 세팅.
+   - 유저 3명 동시 진입 시, 3번째 유저에게 예쁜 티켓링크 스타일의 로딩 스피너(접속 대기 중)가 뜨며 화면 진입이 블로킹되는 기능 시연 (Zset Queue 원리).
+2. **동시성 쟁탈 (이선좌)**
+   - 화면에서 서로 다른 유저로 `예매 입장`하여 '같은' A1 좌석을 누름.
+   - 두 번째 인원은 API Response를 통해 에러를 뱉어내며 '이미 선점된 좌석입니다' 표시 후 블록 됨 (RLock 방어 시연).
+3. **Session Time-Out 튕김 (무단 잠수 이탈)**
+   - 대기열 시스템의 가장 골치아픈 엣지케이스! 1, 2번 유저 마우스 작동을 10초간 금지합니다.
+   - `SESSION_IDLE_TTL`이 만료되어 Sweeper에 의해 자동 퇴출되고, 3번째 대기 유저가 백그라운드 콜을 받아 즉시 `ADMITTED`로 합격하는 모세의 기적 시연!

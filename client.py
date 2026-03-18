@@ -22,9 +22,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 
-REDIS_HOST = "127.0.0.1"
+REDIS_HOST = "0.0.0.0"
 REDIS_PORT = 6380
-WEB_HOST = "127.0.0.1"
+WEB_HOST = "0.0.0.0"
 WEB_PORT = 8000
 WEB_ROOT = Path(__file__).with_name("webapp")
 

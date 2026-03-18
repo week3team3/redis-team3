@@ -39,6 +39,8 @@ const ui = {
   exitButton: document.getElementById("exitButton"),
   simulateButton: document.getElementById("simulateButton"),
   logStream: document.getElementById("logStream"),
+  queueOverlay: document.getElementById("queueOverlay"),
+  queuePosition: document.getElementById("queuePosition"),
 };
 
 function addLog(message, tone = "info") {
@@ -87,6 +89,15 @@ function renderState(payload) {
   renderSeatBoard(payload.seats);
   renderList(ui.admittedList, payload.admitted_users, (userId) => userId);
   renderList(ui.waitingList, payload.waiting_users, (item) => `${item.position}. ${item.user_id}`);
+
+  const currentUser = currentUserId();
+  const waitingUser = payload.waiting_users.find(u => u.user_id === currentUser);
+  if (waitingUser) {
+    ui.queuePosition.textContent = waitingUser.position;
+    ui.queueOverlay.classList.remove("hidden");
+  } else {
+    ui.queueOverlay.classList.add("hidden");
+  }
 }
 
 function renderList(target, items, formatter) {
@@ -220,14 +231,31 @@ async function refreshState() {
   }
 }
 
+function formatUserState(payload) {
+  if (!payload) return "상태: 알 수 없음";
+  if (payload.ok === false) return `<span style="color:var(--primary); font-weight:bold;">오류: ${payload.reason || "알 수 없음"}</span>`;
+  
+  switch (payload.status) {
+    case "NONE": return `<span style="color:var(--muted)">대기 중 (NONE)</span>`;
+    case "ADMITTED": return `상태: <strong style="color:var(--primary)">입장 완료</strong>`;
+    case "WAITING": return `상태: 대기 중 (내 순서: <strong style="color:var(--primary)">${payload.position}</strong>번째)`;
+    case "HELD": return `상태: 좌석 <strong style="color:#fadb14">HOLD</strong> (${payload.seat_id || payload.seatId})`;
+    case "CONFIRMED": return `상태: 🎉 <strong style="color:var(--primary)">예매 확정</strong> (${payload.seat_id || payload.seatId})`;
+    case "CANCELLED": return `상태: <span style="color:var(--muted)">예약 취소됨</span>`;
+    case "EXITED": return `상태: <span style="color:var(--muted)">예매 이탈함</span>`;
+    case "REMOVED_FROM_QUEUE": return `상태: <span style="color:var(--muted)">대기열에서 이탈함</span>`;
+    default: return `상태: ${payload.status || "완료"}`;
+  }
+}
+
 async function postAndRefresh(path, body, successMessage) {
   try {
     const payload = await api(path, { method: "POST", body: JSON.stringify(body) });
-    ui.userState.textContent = JSON.stringify(payload);
-    addLog(successMessage || JSON.stringify(payload));
+    ui.userState.innerHTML = formatUserState(payload);
+    addLog(successMessage || "상태 업데이트 완료");
     await refreshState();
   } catch (error) {
-    ui.userState.textContent = error.message;
+    ui.userState.innerHTML = `<span style="color:var(--primary); font-weight:bold;">오류: ${error.message}</span>`;
     addLog(error.message, "error");
   }
 }
@@ -284,7 +312,7 @@ function bindEvents() {
     postAndRefresh("/api/exit", { eventId: currentEventId(), userId: currentUserId() }, "사용자를 예매 플로우에서 이탈시켰습니다.")
   );
   ui.simulateButton.addEventListener("click", async () => {
-    ui.simulationResult.textContent = "시뮬레이션 실행 중...";
+    ui.simulationResult.innerHTML = '<span class="sim-stat">시뮬레이션 실행 중... ⏳</span>';
     try {
       const payload = await api("/api/simulate", {
         method: "POST",
@@ -295,9 +323,14 @@ function bindEvents() {
           selectedSeat: state.selectedSeatId,
         }),
       });
-      ui.simulationResult.textContent =
-        `users=${payload.users}, confirmed=${payload.confirmed}, hold_fail=${payload.hold_fail}, cancelled=${payload.cancelled}, timed_out=${payload.timed_out}`;
-      addLog(`시뮬레이션 완료: ${ui.simulationResult.textContent}`);
+      ui.simulationResult.innerHTML = `
+        <div class="sim-stat total">👥 투입: <b>${payload.users}</b>명</div>
+        <div class="sim-stat success">🎟️ 예매 성공: <b>${payload.confirmed}</b>명</div>
+        <div class="sim-stat fail">⚔️ 경쟁 실패: <b>${payload.hold_fail}</b>명</div>
+        <div class="sim-stat cancel">❌ 취소 발생: <b>${payload.cancelled}</b>명</div>
+        <div class="sim-stat timeout">⏱️ 시간 초과: <b>${payload.timed_out}</b>명</div>
+      `;
+      addLog(`시뮬레이션 완료 (성공: ${payload.confirmed}명)`);
       renderState(payload.final_state);
     } catch (error) {
       ui.simulationResult.textContent = error.message;

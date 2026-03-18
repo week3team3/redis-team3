@@ -151,32 +151,28 @@ python -m mini_redis.cli --host 127.0.0.1 --port 6379
 ---
 ---
 
-## 🛠️ 번외(고급): RESP (바이너리) 프로토콜 송수신 호환성 증명 전용 실험
+## 🛠️ 번외: 대화형 CLI 사용자 매뉴얼 (기초 응답 테스트)
 
-우리의 서버는 위에서 쓴 텍스트 기반 접근뿐 아니라, 표준 클라이언트들의 호환 스펙인 `RESP (REdis Serialization Protocol)` 구조(`*3\r\n$3...`)도 이해하고 응답할 수 있습니다. CLI 창은 엔터 입력 시 `\n`를 강제로 더하므로 Raw 파싱을 증명하려면 순수 파이썬 스크립트가 필요합니다.
+우리의 서버는 복잡한 소켓 스크립트 없이도, 내장 대화형 CLI로 `SET`과 `GET` 명령어를 타이핑하여 통신을 바로 주고받을 수 있습니다.
 
-**[터미널 B] - 일반 쉘 (CLI 종료 상태)**
-새로운 파이썬 파일 `test_resp.py` 를 만들고 아래 코드를 붙여넣습니다. (혹은 바로 실행)
-
-```python
-import socket
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(("127.0.0.1", 6379))
-
-# 1. 터미널 명령이 아닌 '바이트 단위'로 날림
-client.sendall(b"*3\r\n$3\r\nSET\r\n$8\r\nresp_key\r\n$10\r\nresp_value\r\n")
-print(client.recv(4096).decode("utf-8").strip())  # 결과: +OK
-
-# 2. 값 확인
-client.sendall(b"GET resp_key\n")
-print(client.recv(4096).decode("utf-8").strip())  # 결과: $10 \n resp_value
-```
-
-**실행 방법 (모든 OS 공통):**
+**[터미널 B] - 일반 쉘에서 CLI 접속**
 ```bash
-python test_resp.py
+python -m mini_redis.cli --host 127.0.0.1 --port 6379
 ```
-출력에 `+OK`와 `resp_value`가 나오면 정규 RESP 파서(`parse_resp`)가 정확히 소켓 수준에서 이중으로 동작한다는 점을 증명하는 것입니다. 즉결 증명 끝!
+
+프롬프트(`127.0.0.1:6379> `)가 뜨면 아래와 같이 기본 값 저장과 추출을 입력해 봅니다.
+```text
+127.0.0.1:6379> SET resp_key resp_value
++OK
+127.0.0.1:6379> GET resp_key
+$10
+resp_value
+```
+
+**설명:**
+- CLI 창에서 `SET resp_key resp_value`를 치면, 터미널이 이를 서버에 전송하고, 서버가 파싱(`parse_resp`)을 거친 후 성공했다는 응답인 `+OK`를 화면에 바로 띄워줍니다.
+- 방금 저장한 키를 `GET resp_key`로 조회하면, 저장된 길이(`$10`)와 실제 값(`resp_value`)이 정확히 반환됩니다.
+- 이 대화형 터미널에서 위 7단계의 모든 스펙(`ZADD`, `LOCK`, `RATECHECK` 등)을 똑같이 평문으로 타이핑하여 결과를 바로바로 검증할 수 있습니다!
 
 ---
 
@@ -184,7 +180,7 @@ python test_resp.py
 
 발표 시간이 촉박할 땐 다음 흐름만 빠르게 타이핑하여 보여줍니다.
 
-1. **[1분] AOF 포함 서버 켜기 & CLI 연결**: `python -m mini_redis.cli` 실행 후 터미널 창에서 `PING` 응답 시연
-2. **[1분] 재고 증감과 트래픽 한도**: `SET stock 100`, `DECRBY stock 1`로 잔여 99 확인하고, `RATECHECK ip:123 1 5` 직후 바로 재요청하여 `+BLOCKED` 차단 화면 시연
-3. **[1분] 서버 껐다 켜기**: 서버 `Ctrl+C` 종료 후 재시작. 방금 99로 차감된 `GET stock` 값 복원 결과 보여주며 영속성 시연 완료.
-4. **[1분] RESP 파이썬 스크립트 시연**: 이미 복사해둔 `test_resp.py`를 파이썬으로 켡 한 번 돌려서 `+OK`가 뜨는 모습을 보여주며 통신 규격 호환성 증명!
+1. **[1분] AOF 포함 서버 켜기 & CLI 연결**: `python -m mini_redis.cli` 실행 후 터미널 창에서 기본적인 `SET resp_key resp_value` 저장 및 `GET resp_key` 조회 시연 (`+OK` 응답 확인)
+2. **[1분] 재고 증감과 트래픽 한도**: CLI에서 `SET stock 100`, `DECRBY stock 1`로 잔여 99 확인하고, `RATECHECK ip:123 1 5` 직후 바로 재요청하여 `+BLOCKED` 차단 화면 시연
+3. **[1분] 티켓점유 중복 방지**: CLI에서 `SET seat user-A NX` & 다른 유저의 중복 `NX` 실패(`$-1`) 보여주기
+4. **[1분] 서버 껐다 켜기**: 서버 `Ctrl+C` 종료 후 재시작. 방금 99로 차감된 `GET stock` 값 복원 결과 보여주며 영속성 시연 완료.
